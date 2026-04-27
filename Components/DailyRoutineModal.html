@@ -1,0 +1,517 @@
+<div id="routine-modal-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-[60] hidden flex items-center justify-center backdrop-blur-sm transition-opacity">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 flex flex-col max-h-[90vh] overflow-hidden transform transition-transform scale-95 duration-200 relative" id="routine-modal-content">
+    
+    <div id="routine-progress-overlay" class="absolute inset-0 bg-white/95 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-8 text-center transition-opacity">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mb-6"></div>
+      <h3 class="text-2xl font-black text-gray-900 mb-2 tracking-tight">Generating Routines...</h3>
+      <p id="routine-progress-text" class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-8 bg-blue-50 px-3 py-1 rounded-full">0 of 0 Completed</p>
+      
+      <div class="w-full max-w-md bg-gray-100 rounded-full h-3 shadow-inner overflow-hidden border border-gray-200">
+        <div id="routine-progress-bar" class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.5)]" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <div class="px-8 py-6 border-b border-blue-700 bg-blue-600 text-white flex justify-between items-center shadow-inner">
+      <div>
+        <h3 class="text-xl font-black tracking-tight flex items-center gap-2">
+          <svg class="w-6 h-6 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Your Daily Briefing
+        </h3>
+        <p class="text-blue-100 text-sm mt-1">Here is a summary of your required routines and progress.</p>
+      </div>
+      <button onclick="DailyRoutine.close()" class="text-blue-200 hover:text-white transition p-1 rounded-full hover:bg-blue-700 focus:outline-none">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div class="p-6 md:p-8 overflow-y-auto flex-1 bg-gray-50 space-y-8">
+      
+      <div id="routine-pending-section">
+      </div>
+
+      <div id="routine-status-section" class="pt-6 border-t border-gray-200 hidden">
+        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Status of Generated Routines</h4>
+        <div id="routine-status-list" class="space-y-4">
+        </div>
+      </div>
+
+    </div>
+
+    <div class="px-8 py-5 border-t border-gray-200 bg-white flex justify-between items-center shadow-inner rounded-b-2xl">
+      <button onclick="DailyRoutine.close()" class="text-sm font-bold text-gray-500 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 px-6 py-2.5 rounded-xl transition focus:outline-none">Close</button>
+      <button id="routine-submit-btn" onclick="DailyRoutine.generateTasks()" class="px-8 py-2.5 text-sm font-bold text-white bg-gray-900 rounded-xl hover:bg-gray-800 transition shadow-lg flex items-center justify-center min-w-[180px] transform hover:-translate-y-0.5 focus:outline-none">
+        Generate Selected
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .routine-checkbox {
+    appearance: none; width: 1.35rem; height: 1.35rem; border: 2px solid #cbd5e1; border-radius: 0.375rem; display: grid; place-content: center; cursor: pointer; transition: all 0.2s;
+  }
+  .routine-checkbox::before {
+    content: ""; width: 0.75rem; height: 0.75rem; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); transform: scale(0); transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em white; background-color: white;
+  }
+  .routine-checkbox:checked { background-color: #2563eb; border-color: #2563eb; }
+  .routine-checkbox:checked::before { transform: scale(1); }
+</style>
+
+<script>
+window.DailyRoutine = {
+  groupedPending: {},
+  groupedStatus: {},
+  
+  formatDate(dateObj) {
+    const dd = String(dateObj.getDate()).padStart(2, '0');
+    const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const yyyy = dateObj.getFullYear();
+    return `${yyyy}_${mm}_${dd}`;
+  },
+
+  getSunday(dateObj) {
+    const d = new Date(dateObj);
+    d.setDate(d.getDate() - d.getDay());
+    return d;
+  },
+
+  checkAndShow(ignoredFilteredTasksArray, forceOpen = false) {
+    if (!window.CurrentUser || !window.AppConfig || !window.AppConfig.taskTypes) return;
+    
+    if (!window.Dashboard || !window.Dashboard.state || !window.Dashboard.state.tasks) return;
+    
+    const allGlobalTasks = window.Dashboard.state.tasks;
+
+    const todayDate = new Date();
+    const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = todayDate.getFullYear();
+    const todayStr = this.formatDate(todayDate);
+
+    const storageKey = `routinePrompt_${window.CurrentUser.email}`;
+    if (!forceOpen && localStorage.getItem(storageKey) === todayStr) return; 
+
+    this.groupedPending = {};
+    this.groupedStatus = {};
+    let totalPending = 0;
+    let totalStatus = 0;
+
+    const myRole = (window.CurrentUser.role || '').toLowerCase();
+    const sundayDate = this.getSunday(todayDate);
+    
+    const prefixes = {
+      'Daily': this.formatDate(todayDate),
+      'Weekly': `Week ${this.formatDate(sundayDate)}`,
+      'Monthly': `Month ${yyyy}_${mm}`,
+      'Quarterly': `Q${Math.floor(todayDate.getMonth() / 3) + 1}_${yyyy}`,
+      'Annually': `Year_${yyyy}`
+    };
+
+    const boundaries = {
+      'Daily': new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()), 
+      'Weekly': new Date(sundayDate.getFullYear(), sundayDate.getMonth(), sundayDate.getDate()), 
+      'Monthly': new Date(yyyy, todayDate.getMonth(), 1), 
+      'Quarterly': new Date(yyyy, Math.floor(todayDate.getMonth() / 3) * 3, 1), 
+      'Annually': new Date(yyyy, 0, 1) 
+    };
+
+    window.AppConfig.taskTypes.forEach(type => {
+      if (!type.allowedRoles) return;
+      const allowed = type.allowedRoles.map(r => r.toLowerCase());
+      if (allowed.length > 0 && !allowed.includes(myRole)) return;
+      
+      if (!type.frequency || type.frequency === 'Ad-hoc') return;
+
+      const freq = type.frequency;
+      const prefix = prefixes[freq] || `${freq}_${todayStr}`;
+      const boundaryDate = boundaries[freq] || boundaries['Daily']; 
+      
+      const expectedSystemTitle = `${prefix}_${type.label}`;
+      const cleanDisplayName = type.label; 
+
+      const periodStats = {};
+      
+      allGlobalTasks.forEach(t => {
+        if (t.taskType === type.label && t.createdAt) {
+           const taskCreatedDate = new Date(t.createdAt);
+           if (taskCreatedDate >= boundaryDate) {
+              const s = t.status || 'Open';
+              periodStats[s] = (periodStats[s] || 0) + 1;
+           }
+        }
+      });
+
+      const exists = allGlobalTasks.find(t => 
+        t.title.toLowerCase() === expectedSystemTitle.toLowerCase() &&
+        (t.assignedTo === window.CurrentUser.email || t.assignedTo === '')
+      );
+      
+      if (!exists) {
+        if (!this.groupedPending[freq]) this.groupedPending[freq] = [];
+        this.groupedPending[freq].push({ 
+          fullTitle: expectedSystemTitle, 
+          displayName: cleanDisplayName, 
+          category: type.label, 
+          priority: type.defaultPriority || 'Medium', 
+          stats: periodStats,
+          freqContext: freq
+        });
+        totalPending++;
+      } else {
+        if (!this.groupedStatus[freq]) this.groupedStatus[freq] = [];
+        this.groupedStatus[freq].push({ 
+          fullTitle: expectedSystemTitle, 
+          displayName: cleanDisplayName, 
+          status: exists.status, 
+          stats: periodStats,
+          freqContext: freq
+        });
+        totalStatus++;
+      }
+    });
+
+    if (totalPending === 0 && totalStatus === 0) {
+      if(!forceOpen) localStorage.setItem(storageKey, todayStr);
+      if(forceOpen) {
+          if (typeof showToast === "function") showToast("You have no routines scheduled for your role.", "info");
+      }
+      return;
+    }
+
+    this.renderModal();
+    this.open();
+  },
+
+  buildStatsBadges(statsObj, freqContext) {
+    const keys = Object.keys(statsObj);
+    
+    let timeText = "This Month";
+    if (freqContext === 'Daily') timeText = "Today";
+    else if (freqContext === 'Weekly') timeText = "This Week";
+    else if (freqContext === 'Quarterly') timeText = "This Quarter";
+    else if (freqContext === 'Annually') timeText = "This Year";
+
+    if (keys.length === 0) {
+      return `<span class="px-2 py-0.5 rounded border border-gray-200 text-gray-500 bg-gray-50 text-[9px] font-bold uppercase tracking-wider">0 Generated ${timeText}</span>`;
+    }
+    
+    return keys.map(status => {
+      let colorClass = 'text-gray-700 bg-gray-100 border-gray-200';
+      if (status === 'Completed' || status === 'Done') colorClass = 'text-green-700 bg-green-50 border-green-200';
+      else if (status === 'In-Progress') colorClass = 'text-blue-700 bg-blue-50 border-blue-200';
+      else if (status === 'Open' || status === 'New') colorClass = 'text-orange-700 bg-orange-50 border-orange-200';
+      
+      return `<span class="px-2 py-0.5 rounded border ${colorClass} text-[9px] font-bold uppercase tracking-wider shadow-sm flex items-center gap-1" title="Generated ${timeText}">
+                <span class="text-xs leading-none">${statsObj[status]}</span> ${status}
+              </span>`;
+    }).join('');
+  },
+
+  toggleGroup(groupId, iconId) {
+    const content = document.getElementById(groupId);
+    const icon = document.getElementById(iconId);
+    if (content.classList.contains('hidden')) {
+      content.classList.remove('hidden');
+      icon.classList.add('rotate-180');
+    } else {
+      content.classList.add('hidden');
+      icon.classList.remove('rotate-180');
+    }
+  },
+
+  toggleGroupCheckboxes(freq) {
+    const checkboxes = document.querySelectorAll(`.routine-checkbox[data-freq="${freq}"]`);
+    if (checkboxes.length === 0) return;
+    
+    const allChecked = Array.from(checkboxes).every(chk => chk.checked);
+    checkboxes.forEach(chk => chk.checked = !allChecked);
+    this.updateGroupToggleBtnState(freq);
+  },
+
+  updateGroupToggleBtnState(freq) {
+    const checkboxes = document.querySelectorAll(`.routine-checkbox[data-freq="${freq}"]`);
+    if (checkboxes.length === 0) return;
+    
+    const allChecked = Array.from(checkboxes).every(chk => chk.checked);
+    const safeFreq = freq.replace(/\s+/g, '-');
+    const btn = document.getElementById(`routine-toggle-btn-${safeFreq}`);
+    
+    if (btn) {
+      btn.textContent = allChecked ? 'Uncheck All' : 'Check All';
+    }
+  },
+
+  sortFrequencies(keys) {
+    const order = ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'];
+    return keys.sort((a, b) => {
+      let iA = order.indexOf(a);
+      let iB = order.indexOf(b);
+      if (iA === -1) iA = 99;
+      if (iB === -1) iB = 99;
+      return iA - iB;
+    });
+  },
+
+  renderModal() {
+    const pendingSection = document.getElementById('routine-pending-section');
+    const statusSection = document.getElementById('routine-status-section');
+    
+    let groupsHTML = '';
+    const pendingFreqs = this.sortFrequencies(Object.keys(this.groupedPending));
+
+    pendingFreqs.forEach(freq => {
+      if (this.groupedPending[freq].length === 0) return;
+      
+      const safeFreq = freq.replace(/\s+/g, '-');
+      const isDaily = freq === 'Daily'; 
+      const groupId = `pending-group-${safeFreq}`;
+      const iconId = `pending-icon-${safeFreq}`;
+      const btnId = `routine-toggle-btn-${safeFreq}`;
+
+      const btnText = isDaily ? 'Uncheck All' : 'Check All';
+
+      groupsHTML += `
+        <div class="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          
+          <div class="flex justify-between items-center p-4 bg-gray-50 cursor-pointer select-none hover:bg-gray-100 transition-colors" onclick="DailyRoutine.toggleGroup('${groupId}', '${iconId}')">
+            <h4 class="text-sm font-black text-gray-700 uppercase tracking-widest flex items-center gap-2">
+              <span class="w-2.5 h-2.5 bg-blue-600 rounded-sm transform rotate-45"></span> ${freq} Routines
+              <span class="ml-1 px-2.5 py-0.5 bg-white border border-gray-200 text-gray-600 rounded-md shadow-sm text-[10px] font-black">${this.groupedPending[freq].length}</span>
+            </h4>
+            <div class="flex items-center gap-3">
+              <button id="${btnId}" onclick="event.stopPropagation(); DailyRoutine.toggleGroupCheckboxes('${freq}')" class="text-[9px] font-bold text-blue-700 hover:text-blue-900 transition focus:outline-none uppercase tracking-widest bg-blue-100/50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 w-[85px] text-center">
+                ${btnText}
+              </button>
+              <svg id="${iconId}" class="w-5 h-5 text-gray-400 transform transition-transform duration-300 ${isDaily ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
+          
+          <div id="${groupId}" class="p-4 pt-2 space-y-3 ${isDaily ? '' : 'hidden'} border-t border-gray-100">
+      `;
+      
+      this.groupedPending[freq].forEach((task, index) => {
+        const statsBadges = this.buildStatsBadges(task.stats, task.freqContext);
+        
+        groupsHTML += `
+          <label class="flex items-start gap-4 p-4 bg-white border border-gray-200 rounded-xl cursor-pointer hover:border-blue-500 hover:shadow-md transition group">
+            <input type="checkbox" id="routine-chk-${safeFreq}-${index}" onchange="DailyRoutine.updateGroupToggleBtnState('${freq}')" class="routine-checkbox mt-1" data-freq="${freq}" data-index="${index}" ${isDaily ? 'checked' : ''}>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-black text-gray-900 group-hover:text-blue-700 transition-colors leading-tight truncate">${task.displayName}</div>
+              <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1.5 mb-3 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full ${task.priority === 'High' ? 'bg-red-500' : 'bg-blue-400'}"></span> ${task.priority} Priority
+              </div>
+              <div class="flex flex-wrap gap-1.5 border-t border-gray-50 pt-2.5 mt-2">
+                ${statsBadges}
+              </div>
+            </div>
+          </label>
+        `;
+      });
+      groupsHTML += `</div></div>`;
+    });
+
+    if (!groupsHTML) {
+      pendingSection.innerHTML = `
+        <div class="flex flex-col items-center justify-center p-10 bg-white rounded-2xl border border-dashed border-gray-200 text-center shadow-sm">
+          <svg class="w-12 h-12 text-green-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span class="text-sm font-black text-gray-700">All caught up!</span>
+          <span class="text-xs text-gray-500 mt-1 font-medium">Your scheduled routines have been generated.</span>
+        </div>`;
+    } else {
+      pendingSection.innerHTML = `
+        <div class="flex justify-between items-end mb-4 px-1">
+          <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest">Action Required</h4>
+        </div>
+        ${groupsHTML}
+      `;
+    }
+
+    let statusHTML = '';
+    const statusFreqs = this.sortFrequencies(Object.keys(this.groupedStatus));
+
+    statusFreqs.forEach(freq => {
+      if (this.groupedStatus[freq].length === 0) return;
+      
+      const safeFreq = freq.replace(/\s+/g, '-');
+      const isDaily = freq === 'Daily';
+      const groupId = `status-group-${safeFreq}`;
+      const iconId = `status-icon-${safeFreq}`;
+
+      statusHTML += `
+        <div class="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          
+          <div class="flex justify-between items-center p-4 bg-gray-50 cursor-pointer select-none hover:bg-gray-100 transition-colors" onclick="DailyRoutine.toggleGroup('${groupId}', '${iconId}')">
+            <h5 class="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+              <span class="w-2 h-2 bg-gray-400 rounded-full"></span> ${freq} Tracking
+              <span class="ml-1 px-2.5 py-0.5 bg-white border border-gray-200 text-gray-600 rounded-md text-[9px] font-black shadow-sm">${this.groupedStatus[freq].length}</span>
+            </h5>
+            <svg id="${iconId}" class="w-4 h-4 text-gray-400 transform transition-transform duration-300 ${isDaily ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
+          
+          <div id="${groupId}" class="p-3 pt-1 space-y-2 ${isDaily ? '' : 'hidden'} border-t border-gray-100">
+      `;
+      
+      this.groupedStatus[freq].forEach(task => {
+        const isDone = task.status === 'Completed' || task.status === 'Done';
+        const statsBadges = this.buildStatsBadges(task.stats, task.freqContext);
+        
+        statusHTML += `
+          <div class="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl shadow-sm opacity-90 hover:opacity-100 hover:shadow-md transition group">
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-black text-gray-800 truncate ${isDone ? 'line-through decoration-gray-400 text-gray-500' : ''}">${task.displayName}</div>
+              <div class="flex flex-wrap gap-1.5 mt-2.5 pt-2 border-t border-gray-50">
+                ${statsBadges}
+              </div>
+            </div>
+            <span class="text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm ml-4 whitespace-nowrap uppercase tracking-widest ${isDone ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-orange-50 text-orange-700 border border-orange-200'}">
+              ${isDone ? 'Completed' : task.status}
+            </span>
+          </div>
+        `;
+      });
+      statusHTML += `</div></div>`;
+    });
+
+    if (!statusHTML) {
+      statusSection.classList.add('hidden');
+    } else {
+      statusSection.classList.remove('hidden');
+      document.getElementById('routine-status-list').innerHTML = statusHTML;
+    }
+  },
+
+  open() {
+    document.getElementById('routine-modal-overlay').classList.remove('hidden');
+    setTimeout(() => {
+      const content = document.getElementById('routine-modal-content');
+      content.classList.remove('scale-95');
+      content.classList.add('scale-100');
+    }, 10);
+  },
+
+  close() {
+    localStorage.setItem(`routinePrompt_${window.CurrentUser.email}`, this.formatDate(new Date()));
+    const content = document.getElementById('routine-modal-content');
+    content.classList.remove('scale-100');
+    content.classList.add('scale-95');
+    setTimeout(() => {
+      document.getElementById('routine-modal-overlay').classList.add('hidden');
+      document.getElementById('routine-progress-overlay').classList.add('hidden');
+      document.getElementById('routine-progress-overlay').classList.remove('flex');
+    }, 150);
+  },
+
+  createTaskPromise(payload) {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(res => {
+           try {
+             const response = typeof res === 'string' ? JSON.parse(res) : res;
+             if (response && response.success) {
+               resolve(response);
+             } else {
+               reject(new Error((response && response.error) ? response.error : 'Backend silently failed'));
+             }
+           } catch(e) {
+             reject(new Error("Failed to parse backend response"));
+           }
+        })
+        .withFailureHandler(err => reject(new Error(err.message)))
+        .API_createTask(JSON.stringify(payload));
+    });
+  },
+
+  async generateTasks() {
+    const btn = document.getElementById('routine-submit-btn');
+    const overlay = document.getElementById('routine-progress-overlay');
+    const bar = document.getElementById('routine-progress-bar');
+    const text = document.getElementById('routine-progress-text');
+
+    const payloads = [];
+    const now = new Date();
+    
+    Object.keys(this.groupedPending).forEach(freq => {
+      const safeFreq = freq.replace(/\s+/g, '-');
+      this.groupedPending[freq].forEach((task, index) => {
+        const chk = document.getElementById(`routine-chk-${safeFreq}-${index}`);
+        if (chk && chk.checked) {
+          
+          // --- FULLY FIXED: SLA Dynamic Calculation ---
+          const typeObj = window.AppConfig.taskTypes.find(t => t.label === task.category);
+          let subType = 'N/A';
+          let dlIso = null;
+
+          if (typeObj) {
+            if (typeObj.subTypes && typeObj.subTypes.length > 0) subType = typeObj.subTypes[0];
+
+            let priorityKey = (typeObj.defaultPriority || 'Medium').toLowerCase();
+            let slaHours = 24; 
+            
+            if (window.AppConfig && window.AppConfig.timers && window.AppConfig.timers[priorityKey] !== undefined) {
+               slaHours = parseInt(window.AppConfig.timers[priorityKey]);
+            }
+            if(isNaN(slaHours) || slaHours === 0) slaHours = 24;
+
+            dlIso = new Date(now.getTime() + (slaHours * 60 * 60 * 1000)).toISOString();
+          }
+          // --------------------------------------------
+
+          payloads.push({
+            title: task.fullTitle,
+            description: `📋 **Auto-generated ${freq} Routine Task.**`,
+            taskType: task.category,
+            subType: subType, 
+            priority: task.priority,
+            deadline: dlIso, 
+            assignedTo: window.CurrentUser.email,
+            status: 'New' 
+          });
+        }
+      });
+    });
+
+    if (payloads.length === 0) return; 
+
+    // Lock UI and show progress
+    btn.disabled = true;
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+    bar.style.width = '0%';
+    text.textContent = `0 of ${payloads.length} Generated`;
+
+    let completed = 0;
+
+    try {
+      for (const payload of payloads) {
+        await this.createTaskPromise(payload);
+        
+        completed++;
+        const percent = Math.round((completed / payloads.length) * 100);
+        bar.style.width = `${percent}%`;
+        text.textContent = `${completed} of ${payloads.length} Generated`;
+      }
+      
+      if (typeof showToast === "function") {
+        showToast(`Successfully generated ${payloads.length} routine tasks!`, "success");
+      }
+      if (typeof window.playNotificationSound === "function") window.playNotificationSound('standard');
+
+    } catch (err) {
+      if (typeof toastError === "function") toastError("Error generating tasks: " + err.message);
+      
+      // Unlock UI on error so they can try again or close
+      btn.disabled = false;
+      overlay.classList.add('hidden');
+      overlay.classList.remove('flex');
+      return; 
+    }
+
+    setTimeout(() => {
+      this.close();
+      setTimeout(() => {
+         if (window.Dashboard) window.Dashboard.init(); 
+      }, 300);
+    }, 800);
+  }
+};
+</script>

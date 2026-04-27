@@ -1,0 +1,72 @@
+<script>
+/**
+ * Safely handles page navigation by showing/hiding pre-loaded containers.
+ */
+function loadPage(pageName) {
+  // 1. Hide all views
+  const views = document.querySelectorAll('.view-section');
+  views.forEach(view => view.classList.add('hidden'));
+  
+  // 2. Show target view
+  const target = document.getElementById('view-' + pageName);
+  if (target) {
+    target.classList.remove('hidden');
+    
+    // 3. --- NEW: Break out of the iframe and update the REAL URL! ---
+    if (pageName !== 'Login') {
+      google.script.history.replace(null, null, pageName); 
+      localStorage.setItem('tm_last_page', pageName); // Keep this as a backup
+    } else {
+      google.script.history.replace(null, null, ''); // Clear hash on login screen
+    }
+    // ----------------------------------------------------------------
+    
+    // 4. Update Sidebar Highlights
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.classList.remove('bg-gray-800', 'text-white');
+      link.classList.add('text-gray-400');
+    });
+    
+    const activeLink = document.getElementById('nav-' + pageName);
+    if (activeLink) {
+      activeLink.classList.remove('text-gray-400');
+      activeLink.classList.add('bg-gray-800', 'text-white');
+    }
+    
+    // 5. Call the page's init() function
+    if (window[pageName] && typeof window[pageName].init === 'function') {
+      window[pageName].init();
+    }
+  } else {
+    console.error('View not found: view-' + pageName);
+  }
+}
+
+/**
+ * Displays a toast notification on the screen.
+ */
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return; // Fail safe if container isn't rendered yet
+  
+  const toast = document.createElement('div');
+  const bgColor = type === 'error' ? 'bg-red-500' : 'bg-green-600';
+  
+  toast.className = `${bgColor} text-white px-4 py-3 rounded shadow-lg opacity-0 transition-opacity duration-300`;
+  toast.textContent = msg;
+  
+  container.appendChild(toast);
+  
+  // Fade in, then remove after 3 seconds
+  setTimeout(() => toast.classList.remove('opacity-0'), 10);
+  setTimeout(() => {
+    toast.classList.add('opacity-0');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function toastError(msg) {
+  console.error(msg);
+  showToast(msg, 'error');
+}
+</script>

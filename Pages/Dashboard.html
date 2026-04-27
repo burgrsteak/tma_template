@@ -1,0 +1,1307 @@
+<div class="h-full flex flex-col bg-[#F8F9FB] dark:bg-[#121212] relative font-sans overflow-hidden">
+
+  <div id="filter-overlay" onclick="window.Dashboard.toggleFilterDrawer()" class="fixed inset-0 bg-gray-900 bg-opacity-40 z-40 hidden backdrop-blur-sm transition-opacity"></div>
+  <div id="filter-drawer" class="fixed inset-y-0 right-0 w-80 bg-white dark:bg-[#444444] shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col rounded-l-3xl">
+    <div class="px-6 py-5 border-b border-gray-100 dark:border-[#444444] flex justify-between items-center">
+      <h3 class="text-sm font-black uppercase tracking-widest text-gray-800 dark:text-[#E0E0E0]">Advanced Filters</h3>
+      <button onclick="window.Dashboard.toggleFilterDrawer()" class="text-gray-400 hover:text-gray-700 dark:text-[#B0B0B0] dark:hover:text-[#E0E0E0] bg-gray-100 dark:bg-[#121212] hover:bg-gray-200 p-2 rounded-full transition focus:outline-none">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+    <div class="p-6 flex-1 overflow-y-auto space-y-6">
+      <div>
+        <label class="block text-[11px] font-bold text-gray-500 dark:text-[#B0B0B0] uppercase tracking-wide mb-2">Category (Task Type)</label>
+        <input type="text" id="adv-filter-category" list="adv-category-options" oninput="window.Dashboard.updateAdvFilters('category', this.value)" onchange="window.Dashboard.updateAdvFilters('category', this.value)" class="w-full text-sm border border-gray-200 dark:border-[#444444] rounded-xl px-4 py-2.5 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-[#E0E0E0] focus:bg-white dark:focus:bg-[#444444] focus:outline-none transition-colors" placeholder="Search category...">
+        <datalist id="adv-category-options"></datalist>
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-gray-500 dark:text-[#B0B0B0] uppercase tracking-wide mb-2">Assignee</label>
+        <select id="adv-filter-assignee" onchange="window.Dashboard.updateAdvFilters('assignee', this.value)" class="w-full text-sm border border-gray-200 dark:border-[#444444] rounded-xl px-4 py-2.5 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-[#E0E0E0] focus:bg-white dark:focus:bg-[#444444] focus:outline-none transition-colors cursor-pointer modern-select">
+          <option value="">All Users</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-gray-500 dark:text-[#B0B0B0] uppercase tracking-wide mb-2">Priority</label>
+        <select id="adv-filter-priority" onchange="window.Dashboard.updateAdvFilters('priority', this.value)" class="w-full text-sm border border-gray-200 dark:border-[#444444] rounded-xl px-4 py-2.5 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-[#E0E0E0] focus:bg-white dark:focus:bg-[#444444] focus:outline-none transition-colors cursor-pointer modern-select">
+          <option value="">All Priorities</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+          <option value="None">None</option> 
+        </select>
+      </div>
+      <div class="pt-4 border-t border-gray-100 dark:border-[#444444]">
+        <label class="block text-[11px] font-bold text-gray-500 dark:text-[#B0B0B0] uppercase tracking-wide mb-3">Deadline Range</label>
+        <div class="space-y-3">
+          <div>
+            <span class="text-[10px] text-gray-400 dark:text-[#B0B0B0] uppercase font-bold ml-1">From:</span>
+            <input type="date" id="adv-filter-date-from" onchange="window.Dashboard.updateAdvFilters('dateFrom', this.value)" class="w-full text-sm border border-gray-200 dark:border-[#444444] rounded-xl px-4 py-2.5 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-[#E0E0E0] focus:bg-white dark:focus:bg-[#444444] focus:outline-none transition-colors">
+          </div>
+          <div>
+            <span class="text-[10px] text-gray-400 dark:text-[#B0B0B0] uppercase font-bold ml-1">To:</span>
+            <input type="date" id="adv-filter-date-to" onchange="window.Dashboard.updateAdvFilters('dateTo', this.value)" class="w-full text-sm border border-gray-200 dark:border-[#444444] rounded-xl px-4 py-2.5 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-[#E0E0E0] focus:bg-white dark:focus:bg-[#444444] focus:outline-none transition-colors">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="p-4 border-t border-gray-100 dark:border-[#444444] bg-white dark:bg-[#121212] rounded-b-3xl">
+      <button onclick="window.Dashboard.clearAdvFilters()" class="w-full py-3 bg-gray-100 dark:bg-[#444444] hover:bg-gray-200 dark:hover:bg-[#888888] text-gray-800 dark:text-[#E0E0E0] text-sm font-black tracking-wide rounded-xl transition-colors">Reset All Filters</button>
+    </div>
+  </div>
+
+  <div class="w-full flex-1 flex flex-col min-w-0 overflow-hidden">
+    
+    <div class="w-full flex-shrink-0 flex flex-col px-4 md:px-8 pt-6 md:pt-8 pb-2 overflow-x-hidden">
+      
+      <div class="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
+        
+        <div class="flex-shrink-0 min-w-[320px]">
+          <div class="flex items-center gap-3 mb-1">
+            <button onclick="window.toggleSidebar()" class="p-2 -ml-2 text-gray-500 hover:text-blue-600 dark:text-[#B0B0B0] dark:hover:text-[#E0E0E0] hover:bg-blue-50 dark:hover:bg-[#444444] rounded-xl transition focus:outline-none">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <h2 class="text-3xl font-black text-gray-900 dark:text-[#E0E0E0] tracking-tight" id="dash-greeting">Welcome back!</h2>
+          </div>
+          <div id="personal-progress-container" class="mt-2.5 pl-11">
+             <div class="animate-pulse h-1.5 bg-gray-200 dark:bg-[#444444] rounded-full w-48 mt-2"></div>
+          </div>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="relative w-full sm:w-64">
+            <svg class="w-4 h-4 absolute left-4 top-3 text-gray-400 dark:text-[#B0B0B0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <input type="text" id="search-input" onkeyup="window.Dashboard.updateAdvFilters('search', this.value)" placeholder="Search tasks..." class="w-full text-sm border border-gray-200 dark:border-[#444444] rounded-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#444444] text-gray-900 dark:text-[#E0E0E0] shadow-sm focus:outline-none transition-colors font-medium">
+          </div>
+          
+          <div class="flex items-center gap-1.5 bg-white dark:bg-[#444444] border border-gray-200 dark:border-[#444444] rounded-full p-1.5 shadow-sm">
+            <button onclick="window.Dashboard.toggleFilterDrawer()" id="btn-filter-drawer" class="p-2 text-gray-500 dark:text-[#B0B0B0] hover:text-blue-600 dark:hover:text-[#E0E0E0] hover:bg-blue-50 dark:hover:bg-[#888888] rounded-full transition relative focus:outline-none" title="Advanced Filters">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 00-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+              <span id="filter-active-dot" class="hidden absolute top-1.5 right-1.5 bg-blue-500 w-1.5 h-1.5 rounded-full border border-white"></span>
+            </button>
+            <button onclick="if(window.DailyRoutine) window.DailyRoutine.checkAndShow(window.Dashboard.state.tasks, true)" class="p-2 text-orange-500 dark:text-[#E0E0E0] hover:bg-orange-50 dark:hover:bg-[#888888] rounded-full transition focus:outline-none" title="My Daily Briefing">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+            <button onclick="if(window.ActivityModal) window.ActivityModal.open()" class="p-2 text-purple-500 dark:text-[#E0E0E0] hover:bg-purple-50 dark:hover:bg-[#888888] rounded-full transition focus:outline-none" title="Activity Feed">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </button>
+            <button onclick="if(window.CalendarModal) window.CalendarModal.open()" class="p-2 text-teal-500 dark:text-[#E0E0E0] hover:bg-teal-50 dark:hover:bg-[#888888] rounded-full transition focus:outline-none" title="Calendar View">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            </button>
+            <button onclick="window.Dashboard.init()" class="p-2 text-gray-500 dark:text-[#B0B0B0] dark:hover:text-[#E0E0E0] hover:bg-blue-50 dark:hover:bg-[#888888] rounded-full transition focus:outline-none" title="Refresh Dashboard">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </button>
+            <div class="relative flex items-center justify-center">
+              <button onclick="toggleNotifications()" class="p-2 text-gray-500 dark:text-[#B0B0B0] dark:hover:text-[#E0E0E0] hover:bg-blue-50 dark:hover:bg-[#888888] rounded-full transition relative focus:outline-none" title="Notifications">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                <span id="notif-badge" class="hidden absolute top-1 right-1 bg-red-500 text-white text-[9px] font-black w-3.5 h-3.5 flex items-center justify-center rounded-full border border-white">0</span>
+              </button>
+              <div id="notif-panel" class="hidden absolute right-0 top-full mt-3 w-80 bg-white dark:bg-[#444444] border border-gray-100 dark:border-[#444444] shadow-2xl rounded-2xl overflow-hidden z-50">
+                <div class="px-5 py-4 border-b border-gray-100 dark:border-[#444444] bg-gray-50/50 dark:bg-[#121212] flex justify-between items-center">
+                  <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-[#B0B0B0]">Notifications</span>
+                  <button onclick="clearNotifications()" class="text-[10px] font-bold text-blue-600 dark:text-[#E0E0E0] hover:underline focus:outline-none">Clear All</button>
+                </div>
+                <div id="notif-list" class="max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-[#121212]">
+                  <div class="p-6 text-center text-xs text-gray-400 dark:text-[#B0B0B0] font-medium">No new updates</div>
+                </div>
+              </div>
+            </div>
+            <button onclick="window.ExportModal.open()" class="p-2 text-green-600 dark:text-[#E0E0E0] hover:bg-green-50 dark:hover:bg-[#888888] rounded-full transition focus:outline-none" title="Export CSV">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            </button>
+          </div>
+
+          <button onclick="window.TaskModal.open()" class="px-6 py-2.5 bg-blue-600 dark:bg-[#E0E0E0] dark:text-[#121212] hover:bg-blue-700 dark:hover:bg-white text-white text-sm font-bold rounded-full shadow-md shadow-blue-200/50 dark:shadow-none transition-all transform hover:scale-105 focus:outline-none flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+            New Task
+          </button>
+        </div>
+      </div>
+
+      <div class="w-full grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white dark:bg-[#444444] rounded-3xl p-5 border border-gray-100 dark:border-[#444444] shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black text-gray-400 dark:text-[#B0B0B0] uppercase tracking-widest">Active Tasks</span>
+            <div class="w-8 h-8 rounded-full bg-blue-50 dark:bg-[#121212] text-blue-600 dark:text-[#E0E0E0] flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg></div>
+          </div>
+          <div class="text-3xl font-black text-gray-900 dark:text-[#E0E0E0] mt-3" id="kpi-active">0</div>
+        </div>
+        <div class="bg-white dark:bg-[#444444] rounded-3xl p-5 border border-gray-100 dark:border-[#444444] shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black text-gray-400 dark:text-[#B0B0B0] uppercase tracking-widest">High Priority</span>
+            <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-[#121212] text-red-500 dark:text-[#E0E0E0] flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+          </div>
+          <div class="text-3xl font-black text-gray-900 dark:text-[#E0E0E0] mt-3" id="kpi-urgent">0</div>
+        </div>
+        <div class="bg-white dark:bg-[#444444] rounded-3xl p-5 border border-gray-100 dark:border-[#444444] shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden">
+          <div class="flex justify-between items-start">
+            <span class="text-[10px] font-black text-gray-400 dark:text-[#B0B0B0] uppercase tracking-widest">Due Today</span>
+            <div class="w-8 h-8 rounded-full bg-orange-50 dark:bg-[#121212] text-orange-500 dark:text-[#E0E0E0] flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>
+          </div>
+          <div class="flex items-baseline gap-3 mt-3">
+            <div class="text-3xl font-black text-gray-900 dark:text-[#E0E0E0]" id="kpi-due">0</div>
+            <div class="hidden items-center gap-1 text-[10px] font-black uppercase tracking-widest text-red-600 dark:text-[#121212] bg-red-50 dark:bg-[#888888] px-2 py-1 rounded-lg shadow-sm" id="kpi-overdue-badge">
+              <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span id="kpi-overdue-count">0</span> Overdue
+            </div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-[#444444] rounded-3xl p-5 border border-gray-100 dark:border-[#444444] shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black text-gray-400 dark:text-[#B0B0B0] uppercase tracking-widest">Completed</span>
+            <div class="w-8 h-8 rounded-full bg-green-50 dark:bg-[#121212] text-green-500 dark:text-[#E0E0E0] flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div>
+          </div>
+          <div class="text-3xl font-black text-gray-900 dark:text-[#E0E0E0] mt-3" id="kpi-done">0</div>
+        </div>
+      </div>
+
+      <div class="w-full flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4">
+        <div class="flex-1 w-full xl:w-auto min-w-0">
+          <div id="freq-filter-container" class="flex bg-gray-200/60 dark:bg-[#444444] p-1.5 rounded-full shadow-inner overflow-x-auto hide-scrollbar snap-x scroll-smooth">
+             </div>
+        </div>
+
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <div class="flex items-center bg-gray-200/60 dark:bg-[#444444] p-1 rounded-xl shadow-inner">
+            <button id="view-toggle-grid" onclick="window.Dashboard.switchViewMode('grid')" class="p-1.5 rounded-lg text-gray-500 dark:text-[#B0B0B0] hover:text-gray-800 dark:hover:text-[#E0E0E0] focus:outline-none transition-all" title="Grid View">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            </button>
+            <button id="view-toggle-list" onclick="window.Dashboard.switchViewMode('list')" class="p-1.5 rounded-lg text-gray-500 dark:text-[#B0B0B0] hover:text-gray-800 dark:hover:text-[#E0E0E0] focus:outline-none transition-all" title="List View">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+          </div>
+
+          <div id="team-toggle-container" class="hidden">
+            <button id="btn-team-view" onclick="window.Dashboard.toggleTeamView()" class="px-5 py-2.5 text-xs font-bold text-gray-500 dark:text-[#B0B0B0] bg-white dark:bg-[#121212] border border-gray-200 dark:border-[#444444] hover:bg-gray-50 dark:hover:bg-[#444444] rounded-xl transition shadow-sm flex items-center gap-2 focus:outline-none">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+              View Team
+            </button>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+
+    <div class="w-full flex-1 min-h-0 relative">
+      <div id="dash-loading" class="absolute inset-0 z-10 flex flex-col justify-center items-center py-24 hidden bg-[#F8F9FB]/50 dark:bg-[#121212]/50 backdrop-blur-sm">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-blue-600 dark:border-[#E0E0E0] mb-4"></div>
+        <p class="text-xs font-bold text-gray-400 dark:text-[#B0B0B0] uppercase tracking-widest">Fetching Tasks...</p>
+      </div>
+      
+      <div id="main-sections-container"></div>
+    </div>
+
+  </div>
+
+  <div id="export-modal-overlay" class="fixed inset-0 bg-gray-900 dark:bg-[#121212] bg-opacity-60 dark:bg-opacity-80 z-[60] hidden flex items-center justify-center backdrop-blur-sm transition-opacity">
+    <div class="bg-white dark:bg-[#444444] rounded-3xl shadow-2xl w-full max-w-md mx-4 flex flex-col overflow-hidden transform scale-95 transition-transform duration-200" id="export-modal-content">
+      <div class="px-6 py-5 border-b border-gray-100 dark:border-[#121212] flex justify-between items-center bg-gray-50/50 dark:bg-[#444444]">
+        <h3 class="text-lg font-black text-gray-900 dark:text-[#E0E0E0] tracking-tight flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-500 dark:text-[#E0E0E0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          Export Report
+        </h3>
+        <button onclick="window.ExportModal.close()" class="text-gray-400 hover:text-gray-600 dark:text-[#B0B0B0] dark:hover:text-[#E0E0E0] bg-white dark:bg-[#121212] hover:bg-gray-100 p-1.5 rounded-full transition focus:outline-none shadow-sm border border-gray-200 dark:border-transparent">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-5">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[11px] font-bold text-gray-500 dark:text-[#B0B0B0] uppercase tracking-wide mb-2">Created From</label>
+            <input type="date" id="export-date-from" class="w-full text-sm font-semibold border border-gray-200 dark:border-[#121212] rounded-xl px-3 py-2.5 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-[#E0E0E0] focus:outline-none transition-colors">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-gray-500 dark:text-[#B0B0B0] uppercase tracking-wide mb-2">Created To</label>
+            <input type="date" id="export-date-to" class="w-full text-sm font-semibold border border-gray-200 dark:border-[#121212] rounded-xl px-3 py-2.5 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-[#E0E0E0] focus:outline-none transition-colors">
+          </div>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-gray-500 dark:text-[#B0B0B0] uppercase tracking-wide mb-2">Status</label>
+          <select id="export-status" class="w-full text-sm font-semibold border border-gray-200 dark:border-[#121212] rounded-xl px-4 py-2.5 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-[#E0E0E0] focus:outline-none transition-colors cursor-pointer modern-select">
+            <option value="">All Statuses</option>
+            <option value="Open">Open</option>
+            <option value="In-Progress">In-Progress</option>
+            <option value="Completed">Completed</option>
+            <option value="Done">Done</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-gray-500 dark:text-[#B0B0B0] uppercase tracking-wide mb-2">Category</label>
+          <select id="export-category" class="w-full text-sm font-semibold border border-gray-200 dark:border-[#121212] rounded-xl px-4 py-2.5 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-[#E0E0E0] focus:outline-none transition-colors cursor-pointer modern-select">
+            <option value="">All Categories</option>
+          </select>
+        </div>
+        <div>
+           <label class="block text-[11px] font-bold text-gray-500 dark:text-[#B0B0B0] uppercase tracking-wide mb-2">Assignee</label>
+           <select id="export-assignee" class="w-full text-sm font-semibold border border-gray-200 dark:border-[#121212] rounded-xl px-4 py-2.5 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-[#E0E0E0] focus:outline-none transition-colors cursor-pointer modern-select">
+             <option value="">All Assignees</option>
+           </select>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 border-t border-gray-100 dark:border-[#121212] bg-gray-50 dark:bg-[#444444] flex justify-end gap-3 rounded-b-3xl">
+        <button onclick="window.ExportModal.close()" class="px-5 py-2.5 text-sm font-bold text-gray-600 dark:text-[#B0B0B0] bg-white dark:bg-[#121212] border border-gray-200 dark:border-transparent rounded-xl hover:bg-gray-100 transition shadow-sm focus:outline-none">Cancel</button>
+        <button onclick="window.ExportModal.download()" class="px-6 py-2.5 text-sm font-bold text-white dark:text-[#121212] bg-green-600 dark:bg-[#E0E0E0] rounded-xl hover:bg-green-700 transition shadow-md flex items-center justify-center focus:outline-none">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          Download CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<?!= include('Component/Modal'); ?>
+<?!= include('Component/ViewTaskModal'); ?>
+<?!= include('Component/DailyRoutineModal'); ?>
+<?!= include('Component/ActivityModal'); ?>
+<?!= include('Component/CalendarModal'); ?>
+
+<style>
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  
+  .custom-scroll::-webkit-scrollbar { height: 10px; width: 6px;}
+  .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.03); border-radius: 10px; margin: 0 10px;}
+  .custom-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+  .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+  
+  .dark-mode .custom-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+  .dark-mode .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
+  .dark-mode .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+  .custom-checkbox {
+    appearance: none; background-color: #fff; margin: 0; font: inherit; color: currentColor;
+    width: 1.25em; height: 1.25em; border: 2px solid #CBD5E1; border-radius: 0.35em;
+    display: grid; place-content: center; cursor: pointer; transition: all 0.2s ease-in-out;
+  }
+  .dark-mode .custom-checkbox { background-color: #121212; border-color: #B0B0B0; }
+  
+  .custom-checkbox::before {
+    content: ""; width: 0.75em; height: 0.75em;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    transform: scale(0); transform-origin: bottom left; transition: 120ms transform ease-in-out;
+    box-shadow: inset 1em 1em white; background-color: white;
+  }
+  .dark-mode .custom-checkbox::before { box-shadow: inset 1em 1em #121212; background-color: #121212; }
+
+  .custom-checkbox:checked { background-color: #2563EB; border-color: #2563EB; }
+  .dark-mode .custom-checkbox:checked { background-color: #E0E0E0; border-color: #E0E0E0; }
+  .custom-checkbox:checked::before { transform: scale(1); }
+
+  .modern-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center; background-repeat: no-repeat; background-size: 1.25em 1.25em;
+  }
+  .dark-mode .modern-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23E0E0E0' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  }
+</style>
+
+<script>
+window.playNotificationSound = function(type = 'standard') {
+  try {
+    let audioUrl = 'https://actions.google.com/sounds/v1/water/droplet.ogg';
+    if (type === 'urgent' || type === 'overdue') {
+      audioUrl = 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg';
+    }
+    const audio = new Audio(audioUrl);
+    audio.volume = 0.5;
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(e => console.warn('Browser auto-play policy blocked the sound.', e));
+    }
+  } catch(e) {}
+};
+
+window.ExportModal = {
+  open() {
+    this.populateDropdowns();
+    document.getElementById('export-modal-overlay').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('export-modal-content').classList.remove('scale-95');
+      document.getElementById('export-modal-content').classList.add('scale-100');
+    }, 10);
+  },
+  
+  close() {
+    document.getElementById('export-modal-content').classList.remove('scale-100');
+    document.getElementById('export-modal-content').classList.add('scale-95');
+    setTimeout(() => { document.getElementById('export-modal-overlay').classList.add('hidden'); }, 150);
+  },
+
+  populateDropdowns() {
+    const catSelect = document.getElementById('export-category');
+    const userSelect = document.getElementById('export-assignee');
+    
+    if (catSelect.options.length === 1 && window.AppConfig && window.AppConfig.taskTypes) {
+      window.AppConfig.taskTypes.forEach(t => {
+        catSelect.innerHTML += `<option value="${t.label}">${t.label}</option>`;
+      });
+    }
+    
+    if (userSelect.options.length === 1 && window.AppConfig && window.AppConfig.users) {
+      window.AppConfig.users.forEach(u => {
+        userSelect.innerHTML += `<option value="${u.email}">${u.name}</option>`;
+      });
+    }
+  },
+
+  download() {
+    const dFrom = document.getElementById('export-date-from').value;
+    const dTo = document.getElementById('export-date-to').value;
+    const status = document.getElementById('export-status').value;
+    const category = document.getElementById('export-category').value;
+    const assignee = document.getElementById('export-assignee').value;
+
+    let data = window.Dashboard.state.tasks || [];
+
+    if (dFrom) data = data.filter(t => t.createdAt && t.createdAt.split('T')[0] >= dFrom);
+    if (dTo) data = data.filter(t => t.createdAt && t.createdAt.split('T')[0] <= dTo);
+    if (status) data = data.filter(t => t.status === status);
+    if (category) data = data.filter(t => t.taskType === category);
+    if (assignee) data = data.filter(t => t.assignedTo === assignee);
+
+    if (data.length === 0) {
+      if (typeof toastError === "function") toastError("No tasks match these filters.");
+      return;
+    }
+
+    const dateStr = new Date().toISOString().split('T')[0];
+    if (typeof downloadCSV === "function") {
+      downloadCSV(`Filtered_Report_${dateStr}.csv`, data);
+      if (typeof showToast === "function") showToast("Download started!", "success");
+      this.close();
+    }
+  }
+};
+
+window.toggleNotifications = function() {
+  const panel = document.getElementById('notif-panel');
+  if (panel) panel.classList.toggle('hidden');
+};
+
+window.clearNotifications = function() {
+  const list = document.getElementById('notif-list');
+  const badge = document.getElementById('notif-badge');
+  if (list) list.innerHTML = '<div class="p-6 text-center text-xs text-gray-400 font-medium">No new updates</div>';
+  if (badge) {
+    badge.textContent = '0';
+    badge.classList.add('hidden');
+  }
+};
+
+window.addNotification = function(title, message, type = 'info', taskId = null) {
+  const list = document.getElementById('notif-list');
+  const badge = document.getElementById('notif-badge');
+  if (!list || !badge) return;
+  
+  if (list.innerHTML.includes('No new updates')) {
+    list.innerHTML = '';
+  }
+  
+  const notif = document.createElement('div');
+  notif.className = `p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition ${type === 'overdue' ? 'bg-red-50/40' : ''}`;
+  
+  if (taskId) {
+    notif.onclick = () => { 
+      if (window.ViewTaskModal) window.ViewTaskModal.open(taskId); 
+      window.toggleNotifications(); 
+    };
+  }
+  
+  const icon = type === 'overdue' 
+    ? `<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`
+    : `<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+  
+  notif.innerHTML = `
+    <div class="flex items-start gap-3">
+      <div class="mt-0.5">${icon}</div>
+      <div>
+        <p class="text-xs font-bold ${type === 'overdue' ? 'text-red-800' : 'text-gray-800'}">${title}</p>
+        <p class="text-[11px] ${type === 'overdue' ? 'text-red-600' : 'text-gray-600'} font-medium mt-0.5">${message}</p>
+        <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1 block">Just now</span>
+      </div>
+    </div>
+  `;
+  
+  list.prepend(notif);
+  
+  let count = parseInt(badge.textContent || '0') + 1;
+  badge.textContent = count;
+  badge.classList.remove('hidden');
+  
+  if (typeof showToast === 'function') {
+    showToast(title, type === 'overdue' ? 'error' : 'info');
+  }
+
+  window.playNotificationSound(type);
+};
+
+window.Dashboard = {
+  state: {
+    tasks: [],
+    notifiedTasks: new Set(),
+    isTeamView: false, 
+    isAdmin: false, 
+    viewMode: localStorage.getItem('tma_view_mode') || 'grid', 
+    advFilters: { search: '', category: '', assignee: '', priority: '', dateFrom: '', dateTo: '' },
+    
+    activeFreqFilters: new Set(['All']), 
+    sectionTabs: {}, 
+    sectionBulkMode: {}, 
+    sectionSelectedTasks: {} 
+  },
+
+  init() {
+    this.populateDrawerSelects(); 
+    this.setLoading(true);
+    this.updateViewToggleUI();
+    // REMOVED INJECT LOGO SCRIPT (This was causing the double globe!)
+    
+    if (window.CurrentUser && window.CurrentUser.name) {
+       document.getElementById('dash-greeting').textContent = `Welcome back, ${window.CurrentUser.name.split(' ')[0]}!`;
+    }
+
+    this.fetchTasks()
+      .then(response => {
+        this.state.tasks = response.rows;
+        this.state.isAdmin = response.isAdmin;
+        this.renderFrequencyToggle(); 
+        this.renderBoard();
+        this.updateTeamToggleUI();
+        this.checkBackgroundSLAs();
+        if (window.DailyRoutine) window.DailyRoutine.checkAndShow(this.state.tasks);
+      })
+      .catch(err => {
+        if (typeof toastError === "function") toastError('Failed to load tasks: ' + err.message);
+        else console.error('Failed to load tasks:', err);
+      })
+      .finally(() => this.setLoading(false));
+  },
+
+  renderFrequencyToggle() {
+    const container = document.getElementById('freq-filter-container');
+    if (!container) return;
+    
+    let freqs = ['Daily', 'Weekly', 'Monthly']; 
+    if (window.AppConfig && window.AppConfig.frequencies) {
+       freqs = window.AppConfig.frequencies;
+    }
+    
+    let allBtnActive = 'text-gray-900 bg-white shadow-sm dark:text-[#E0E0E0] dark:bg-[#888888]';
+    let allBtnInactive = 'text-gray-500 hover:text-gray-800 dark:text-[#B0B0B0] dark:hover:text-[#E0E0E0]';
+    let html = `<button onclick="window.Dashboard.toggleFrequency('All')" class="flex-shrink-0 sm:px-4 px-3 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap focus:outline-none snap-start ${this.state.activeFreqFilters.has('All') ? allBtnActive : allBtnInactive}">All</button>`;
+    
+    freqs.forEach(f => {
+      const isActive = this.state.activeFreqFilters.has(f);
+      let otherBtnActive = 'text-blue-700 bg-blue-100 shadow-sm border border-blue-200 dark:text-[#E0E0E0] dark:bg-[#888888] dark:border-[#888888]';
+      const btnClass = isActive ? otherBtnActive : allBtnInactive;
+      html += `<button onclick="window.Dashboard.toggleFrequency('${f}')" class="flex-shrink-0 sm:px-4 px-3 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap focus:outline-none snap-start ${btnClass}">${f}</button>`;
+    });
+    
+    container.innerHTML = html;
+  },
+
+  toggleFrequency(freq) {
+    if (freq === 'All') {
+      this.state.activeFreqFilters.clear();
+      this.state.activeFreqFilters.add('All');
+    } else {
+      this.state.activeFreqFilters.delete('All');
+      if (this.state.activeFreqFilters.has(freq)) {
+        this.state.activeFreqFilters.delete(freq);
+      } else {
+        this.state.activeFreqFilters.add(freq);
+      }
+      
+      if (this.state.activeFreqFilters.size === 0) {
+        this.state.activeFreqFilters.add('All');
+      }
+    }
+    this.renderFrequencyToggle();
+    this.renderBoard();
+  },
+
+  switchViewMode(mode) {
+    this.state.viewMode = mode;
+    localStorage.setItem('tma_view_mode', mode);
+    this.updateViewToggleUI();
+    this.renderBoard();
+  },
+
+  updateViewToggleUI() {
+    const btnGrid = document.getElementById('view-toggle-grid');
+    const btnList = document.getElementById('view-toggle-list');
+    
+    if (this.state.viewMode === 'list') {
+      btnList.classList.add('bg-white', 'dark:bg-[#888888]', 'text-blue-600', 'dark:text-[#121212]', 'shadow-sm');
+      btnList.classList.remove('text-gray-500', 'dark:text-[#B0B0B0]', 'hover:text-gray-800', 'dark:hover:text-[#E0E0E0]');
+      btnGrid.classList.remove('bg-white', 'dark:bg-[#888888]', 'text-blue-600', 'dark:text-[#121212]', 'shadow-sm');
+      btnGrid.classList.add('text-gray-500', 'dark:text-[#B0B0B0]', 'hover:text-gray-800', 'dark:hover:text-[#E0E0E0]');
+    } else {
+      btnGrid.classList.add('bg-white', 'dark:bg-[#888888]', 'text-blue-600', 'dark:text-[#121212]', 'shadow-sm');
+      btnGrid.classList.remove('text-gray-500', 'dark:text-[#B0B0B0]', 'hover:text-gray-800', 'dark:hover:text-[#E0E0E0]');
+      btnList.classList.remove('bg-white', 'dark:bg-[#888888]', 'text-blue-600', 'dark:text-[#121212]', 'shadow-sm');
+      btnList.classList.add('text-gray-500', 'dark:text-[#B0B0B0]', 'hover:text-gray-800', 'dark:hover:text-[#E0E0E0]');
+    }
+  },
+
+  checkBackgroundSLAs() {
+    const nowMs = new Date().getTime();
+    this.state.tasks.forEach(task => {
+      if (task.status === 'In-Progress') {
+        const priority = (task.priority || '').toLowerCase();
+        const slaHours = (window.AppConfig && window.AppConfig.timers && window.AppConfig.timers[priority]) ? window.AppConfig.timers[priority] : 0;
+        
+        if (slaHours > 0 && task.updatedAt) {
+          const startTimeMs = new Date(task.updatedAt).getTime();
+          const expireTimeMs = startTimeMs + (slaHours * 60 * 60 * 1000);
+          
+          if (nowMs > expireTimeMs && !this.state.notifiedTasks.has(task.id)) {
+            this.state.notifiedTasks.add(task.id);
+            if (typeof window.addNotification === "function") {
+               window.addNotification("SLA Overdue!", `Task "${task.title}" has breached its SLA limit.`, "overdue", task.id);
+            }
+          }
+        }
+      }
+    });
+  },
+
+  getTaskTimeState(task, nowMs = new Date().getTime()) {
+    const priority = (task.priority || '').toLowerCase();
+    const slaHours = (window.AppConfig && window.AppConfig.timers && window.AppConfig.timers[priority]) ? window.AppConfig.timers[priority] : 0;
+    const isCompleted = task.status === 'Completed' || task.status === 'Done';
+    let isOverdue = false; let isNearOverdue = false; let reason = '';
+
+    if (task.deadline) {
+        const dlMs = new Date(task.deadline).getTime();
+        if (isCompleted) { if (task.updatedAt && new Date(task.updatedAt).getTime() > dlMs) { isOverdue = true; reason = 'Completed Late'; } }
+        else { if (nowMs > dlMs) { isOverdue = true; reason = 'Overdue'; } else if (dlMs - nowMs < 24 * 60 * 60 * 1000) { isNearOverdue = true; } }
+    }
+
+    if (!isOverdue && slaHours > 0 && task.createdAt && task.status === 'In-Progress') {
+        const expireTimeMs = new Date(task.updatedAt || task.createdAt).getTime() + (slaHours * 60 * 60 * 1000);
+        if (nowMs > expireTimeMs) { isOverdue = true; reason = 'SLA Breached'; }
+        else if (expireTimeMs - nowMs < (slaHours * 60 * 60 * 1000 * 0.25)) { isNearOverdue = true; }
+    }
+
+    if (!isOverdue && task.title && /^\d{4}_\d{2}_\d{2}/.test(task.title)) {
+        const taskDate = new Date(task.title.substring(0, 10).replace(/_/g, '-')); taskDate.setHours(0,0,0,0);
+        const today = new Date(nowMs); today.setHours(0,0,0,0);
+        if (taskDate < today) {
+            if (!isCompleted) { isOverdue = true; reason = 'Missed Routine'; }
+            else if (task.updatedAt) { const compDate = new Date(task.updatedAt); compDate.setHours(0,0,0,0); if (compDate > taskDate) { isOverdue = true; reason = 'Completed Late'; } }
+        } else if (taskDate.getTime() === today.getTime() && !isCompleted) {
+            if (task.status === 'New') {
+               const startStr = window.CurrentUser?.shiftStart || "09:00"; const endStr = window.CurrentUser?.shiftEnd || "18:00";
+               const parseTime = (ts) => {
+                  if (!ts) return new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9, 0, 0).getTime();
+                  const tsStr = String(ts).trim(); let h = 9, m = 0;
+                  if (tsStr.includes('T')) { const d = new Date(tsStr); if (!isNaN(d.getTime())) { h = d.getHours(); m = d.getMinutes(); } }
+                  else { const p = tsStr.split(':'); h = parseInt(p[0])||0; m = parseInt(p[1])||0; if(tsStr.toLowerCase().includes('pm') && h<12) h+=12; if(tsStr.toLowerCase().includes('am') && h===12) h=0; }
+                  return new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m, 0).getTime();
+               };
+               const startMs = parseTime(startStr); let endMs = parseTime(endStr); if (endMs <= startMs) endMs += 24 * 60 * 60 * 1000;
+               const shiftDuration = endMs - startMs; const elapsed = nowMs - startMs;
+               const createdMs = task.createdAt ? new Date(task.createdAt).getTime() : nowMs;
+               if ((nowMs - createdMs) >= (15 * 60 * 1000) && elapsed > shiftDuration * 0.75 && elapsed < shiftDuration * 1.5) isNearOverdue = true;
+            }
+        }
+    }
+    return { isOverdue, isNearOverdue, reason };
+  },
+
+  getTaskFrequency(t) {
+    let f = t.frequency || t.Frequency || ''; 
+    if (!f && window.AppConfig && window.AppConfig.taskTypes) {
+      const typeObj = window.AppConfig.taskTypes.find(type => type.label === t.taskType);
+      if (typeObj) f = typeObj.frequency || '';
+    }
+    return String(f || 'Uncategorized');
+  },
+
+  fetchTasks() {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(json => resolve(JSON.parse(json)))
+        .withFailureHandler(reject)
+        .API_getTasks(1, 500, this.state.isTeamView); 
+    });
+  },
+
+  toggleTeamView() {
+    this.state.isTeamView = !this.state.isTeamView;
+    this.init(); 
+  },
+
+  updateTeamToggleUI() {
+    const container = document.getElementById('team-toggle-container');
+    if (!this.state.isAdmin) {
+      container.classList.add('hidden');
+      return;
+    }
+    container.classList.remove('hidden');
+    const btn = document.getElementById('btn-team-view');
+    if (this.state.isTeamView) {
+      btn.classList.add('bg-blue-600', 'dark:bg-[#E0E0E0]', 'text-white', 'dark:text-[#121212]', 'border-transparent');
+      btn.classList.remove('bg-white', 'dark:bg-[#121212]', 'text-gray-500', 'dark:text-[#B0B0B0]', 'border-gray-200', 'dark:border-[#444444]');
+    } else {
+      btn.classList.remove('bg-blue-600', 'dark:bg-[#E0E0E0]', 'text-white', 'dark:text-[#121212]', 'border-transparent');
+      btn.classList.add('bg-white', 'dark:bg-[#121212]', 'text-gray-500', 'dark:text-[#B0B0B0]', 'border-gray-200', 'dark:border-[#444444]');
+    }
+  },
+
+  toggleFilterDrawer() {
+    const drawer = document.getElementById('filter-drawer');
+    const overlay = document.getElementById('filter-overlay');
+    if (drawer.classList.contains('translate-x-full')) {
+      drawer.classList.remove('translate-x-full');
+      overlay.classList.remove('hidden');
+    } else {
+      drawer.classList.add('translate-x-full');
+      overlay.classList.add('hidden');
+    }
+  },
+
+  populateDrawerSelects() {
+    const userSelect = document.getElementById('adv-filter-assignee');
+    userSelect.innerHTML = '<option value="">All Users</option><option value="Unassigned">Unassigned</option>';
+    if (window.AppConfig && window.AppConfig.users) {
+      window.AppConfig.users.forEach(user => {
+        const opt = document.createElement('option');
+        opt.value = user.email;
+        opt.textContent = `${user.name} (${user.email.split('@')[0]})`;
+        userSelect.appendChild(opt);
+      });
+    }
+
+    const catDataList = document.getElementById('adv-category-options');
+    catDataList.innerHTML = '';
+    if (window.AppConfig && window.AppConfig.taskTypes) {
+       window.AppConfig.taskTypes.forEach(type => {
+         const opt = document.createElement('option');
+         opt.value = type.label;
+         catDataList.appendChild(opt);
+       });
+    }
+  },
+
+  updateAdvFilters(field, value) {
+    if(field === 'category') {
+        const typeObj = (window.AppConfig && window.AppConfig.taskTypes) ? window.AppConfig.taskTypes.find(t => t.label === value.trim()) : null;
+        this.state.advFilters[field] = (typeObj || value.trim() === '') ? value.trim() : '';
+    } else {
+        this.state.advFilters[field] = value;
+    }
+    
+    const isAdvActive = this.state.advFilters.assignee || this.state.advFilters.priority || this.state.advFilters.dateFrom || this.state.advFilters.dateTo || this.state.advFilters.category; 
+    const dot = document.getElementById('filter-active-dot');
+    if (dot) isAdvActive ? dot.classList.remove('hidden') : dot.classList.add('hidden');
+    this.renderBoard();
+  },
+
+  clearAdvFilters() {
+    this.state.advFilters = { search: '', category: '', assignee: '', priority: '', dateFrom: '', dateTo: '' };
+    document.getElementById('search-input').value = '';
+    document.getElementById('adv-filter-category').value = '';
+    document.getElementById('adv-filter-assignee').value = '';
+    document.getElementById('adv-filter-priority').value = '';
+    document.getElementById('adv-filter-date-from').value = '';
+    document.getElementById('adv-filter-date-to').value = '';
+    const dot = document.getElementById('filter-active-dot');
+    if (dot) dot.classList.add('hidden');
+    this.toggleFilterDrawer();
+    this.renderBoard();
+  },
+
+  getFilteredTasks() {
+    let filteredTasks = this.state.tasks;
+
+    if (!this.state.activeFreqFilters.has('All')) {
+      filteredTasks = filteredTasks.filter(t => {
+        let taskFreq = String(this.getTaskFrequency(t)).toLowerCase();
+        let match = false;
+        this.state.activeFreqFilters.forEach(filterVal => {
+          if (taskFreq === String(filterVal).toLowerCase()) match = true;
+        });
+        return match;
+      });
+    }
+
+    if (this.state.advFilters.category) {
+      filteredTasks = filteredTasks.filter(t => t.taskType === this.state.advFilters.category);
+    }
+    
+    if (this.state.advFilters.search) {
+      const q = String(this.state.advFilters.search).toLowerCase();
+      filteredTasks = filteredTasks.filter(t => (t.title && String(t.title).toLowerCase().includes(q)) || (t.id && String(t.id).toLowerCase().includes(q)));
+    }
+    
+    if (this.state.advFilters.assignee) {
+      if (this.state.advFilters.assignee === 'Unassigned') {
+        filteredTasks = filteredTasks.filter(t => !t.assignedTo || t.assignedTo === '');
+      } else {
+        filteredTasks = filteredTasks.filter(t => t.assignedTo === this.state.advFilters.assignee);
+      }
+    } else if (!this.state.isTeamView && window.CurrentUser) {
+      filteredTasks = filteredTasks.filter(t => t.assignedTo === window.CurrentUser.email || t.createdBy === window.CurrentUser.email);
+    }
+    
+    if (this.state.advFilters.priority) {
+      filteredTasks = filteredTasks.filter(t => t.priority === this.state.advFilters.priority);
+    }
+    if (this.state.advFilters.dateFrom) {
+      filteredTasks = filteredTasks.filter(t => t.deadline && t.deadline.split('T')[0] >= this.state.advFilters.dateFrom);
+    }
+    if (this.state.advFilters.dateTo) {
+      filteredTasks = filteredTasks.filter(t => t.deadline && t.deadline.split('T')[0] <= this.state.advFilters.dateTo);
+    }
+
+    return filteredTasks;
+  },
+
+  calculateKPIs(tasksToCount) {
+    let active = 0, urgent = 0, dueToday = 0, done = 0, overdue = 0;
+    const nowMs = new Date().getTime();
+    const todayIso = new Date().toISOString().split('T')[0];
+    const todayPrefix = `${new Date().getFullYear()}_${String(new Date().getMonth() + 1).padStart(2, '0')}_${String(new Date().getDate()).padStart(2, '0')}`; 
+
+    tasksToCount.forEach(t => {
+      const isComp = (t.status === 'Completed' || t.status === 'Done');
+      const timeState = this.getTaskTimeState(t, nowMs);
+
+      if (isComp) {
+        done++;
+      } else {
+        active++;
+        if (t.priority && t.priority.toLowerCase() === 'high') urgent++;
+        
+        if (timeState.isOverdue) overdue++;
+        
+        if ((t.deadline && t.deadline.split('T')[0] === todayIso) || 
+            (t.title && t.title.includes(todayPrefix)) ||
+            (t.createdAt && t.createdAt.split('T')[0] === todayIso)) {
+          dueToday++;
+        }
+      }
+    });
+
+    document.getElementById('kpi-active').textContent = active;
+    document.getElementById('kpi-urgent').textContent = urgent;
+    document.getElementById('kpi-due').textContent = dueToday;
+    document.getElementById('kpi-done').textContent = done;
+    
+    const overdueBadge = document.getElementById('kpi-overdue-badge');
+    if (overdueBadge) {
+        if (overdue > 0) {
+            document.getElementById('kpi-overdue-count').textContent = overdue;
+            overdueBadge.classList.remove('hidden');
+            overdueBadge.classList.add('flex');
+        } else {
+            overdueBadge.classList.add('hidden');
+            overdueBadge.classList.remove('flex');
+        }
+    }
+  },
+
+  renderPersonalProgress() {
+    const container = document.getElementById('personal-progress-container');
+    if (!container || !window.CurrentUser) return;
+
+    const todayIso = new Date().toISOString().split('T')[0];
+    let completedToday = 0;
+    let activeTasks = 0;
+
+    this.state.tasks.forEach(t => {
+      if (t.assignedTo === window.CurrentUser.email) {
+        const isComp = (t.status === 'Completed' || t.status === 'Done');
+        if (isComp) {
+          const dateToUse = t.updatedAt || t.createdAt; 
+          if (dateToUse && dateToUse.split('T')[0] === todayIso) completedToday++;
+        } else {
+          activeTasks++;
+        }
+      }
+    });
+
+    const totalTasks = completedToday + activeTasks;
+    let percent = totalTasks === 0 ? 0 : Math.min(100, Math.round((completedToday / totalTasks) * 100));
+    
+    let barColor = 'bg-blue-500'; let shadow = ''; let message = '';
+
+    if (totalTasks === 0) message = `You have 0 tasks for today. You can check <strong>My Daily Briefing</strong> to generate routines!`;
+    else if (completedToday === 0) message = `Ready to conquer the day? You have <strong class="text-gray-800">${totalTasks}</strong> tasks on your plate.`;
+    else if (completedToday < totalTasks) message = `You've completed <strong class="text-gray-800">${completedToday}</strong> out of <strong class="text-gray-800">${totalTasks}</strong> tasks—pacing nicely!`;
+    else { barColor = 'bg-gradient-to-r from-emerald-400 to-emerald-500 dark:from-[#B0B0B0] dark:to-[#E0E0E0]'; shadow = 'shadow-[0_0_12px_rgba(52,211,153,0.5)] dark:shadow-none'; message = `🔥 <strong>Amazing work!</strong> You've completed all <strong class="text-gray-800 dark:text-[#E0E0E0]">${totalTasks}</strong> of your tasks for today.`; }
+
+    container.innerHTML = `
+      <p class="text-xs text-gray-500 dark:text-[#B0B0B0] mb-1.5">${message}</p>
+      <div class="w-full max-w-sm bg-gray-200/60 dark:bg-[#444444] rounded-full h-1.5 overflow-hidden shadow-inner">
+        <div class="${barColor} h-1.5 rounded-full transition-all duration-1000 ease-out ${shadow}" style="width: ${percent}%"></div>
+      </div>
+    `;
+  },
+
+  renderBoard() {
+    const container = document.getElementById('main-sections-container');
+    if (!container) return;
+    container.innerHTML = ''; 
+
+    if (this.state.viewMode === 'list') {
+       container.className = 'absolute inset-0 flex flex-col gap-8 overflow-y-auto overflow-x-hidden custom-scroll px-4 md:px-8 pb-12 transition-all duration-300';
+    } else {
+       // PERFECT ISOLATION: Absolute positioning inside a relative container. 
+       container.className = 'absolute inset-0 flex flex-row gap-6 overflow-x-auto overflow-y-hidden items-stretch snap-x scroll-smooth custom-scroll px-4 md:px-8 pb-4 transition-all duration-300';
+    }
+
+    const allTasks = this.getFilteredTasks();
+    this.calculateKPIs(allTasks);
+    this.renderPersonalProgress();
+
+    let availableFreqs = new Set();
+    allTasks.forEach(t => availableFreqs.add(this.getTaskFrequency(t)));
+    
+    let freqsToRender = [];
+    if (this.state.activeFreqFilters.has('All')) {
+      freqsToRender = Array.from(availableFreqs).sort();
+    } else {
+      freqsToRender = Array.from(this.state.activeFreqFilters).sort();
+    }
+
+    if (freqsToRender.length === 0) {
+      container.innerHTML = `
+        <div class="w-full flex flex-col items-center justify-center p-12 text-gray-400 dark:text-[#B0B0B0] mt-6 bg-white dark:bg-[#444444] rounded-3xl border border-dashed border-gray-200 dark:border-[#121212]">
+          <svg class="w-16 h-16 mb-4 text-gray-300 dark:text-[#888888]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+          <p class="text-sm font-medium">No tasks found for this view.</p>
+        </div>`;
+      return;
+    }
+
+    freqsToRender.forEach(freq => {
+      if (!this.state.sectionTabs[freq]) this.state.sectionTabs[freq] = 'active';
+      if (this.state.sectionBulkMode[freq] === undefined) this.state.sectionBulkMode[freq] = false;
+      if (!this.state.sectionSelectedTasks[freq]) this.state.sectionSelectedTasks[freq] = new Set();
+      
+      container.appendChild(this.buildSectionSkeleton(freq));
+      this.renderSectionTasks(freq);
+    });
+  },
+
+  buildSectionSkeleton(freq) {
+    const wrapper = document.createElement('div');
+    
+    if (this.state.viewMode === 'list') {
+        wrapper.className = 'w-full flex flex-col bg-white/40 dark:bg-[#444444]/40 p-5 rounded-3xl border border-gray-100 dark:border-[#444444] shadow-sm transition-all duration-300';
+    } else {
+        // Internal vertical scrolling explicitly enabled here
+        wrapper.className = 'flex-shrink-0 w-[85vw] sm:w-[350px] xl:w-[380px] max-w-full snap-start flex flex-col bg-white dark:bg-[#444444] p-4 rounded-3xl border border-gray-100 dark:border-[#444444] shadow-sm transition-all duration-300 h-full';
+    }
+    
+    wrapper.id = `section-wrapper-${freq}`;
+
+    let assigneesHtml = '<option value="">Select Assignee...</option><option value="Unassigned">Unassigned</option>';
+    if (window.AppConfig && window.AppConfig.users) {
+      window.AppConfig.users.forEach(u => assigneesHtml += `<option value="${u.email}">${u.name}</option>`);
+    }
+
+    let categoriesHtml = '<option value="">Select Category...</option>';
+    if (window.AppConfig && window.AppConfig.taskTypes) {
+      window.AppConfig.taskTypes.forEach(t => categoriesHtml += `<option value="${t.label}">${t.label}</option>`);
+    }
+
+    let tabActiveBg = this.state.sectionTabs[freq] === 'active' ? 'bg-white dark:bg-[#888888] text-gray-900 dark:text-[#121212] shadow-sm' : 'text-gray-500 dark:text-[#B0B0B0] hover:text-gray-800 dark:hover:text-[#E0E0E0]';
+    let tabCompBg = this.state.sectionTabs[freq] === 'completed' ? 'bg-white dark:bg-[#888888] text-gray-900 dark:text-[#121212] shadow-sm' : 'text-gray-500 dark:text-[#B0B0B0] hover:text-gray-800 dark:hover:text-[#E0E0E0]';
+
+    wrapper.innerHTML = `
+      <div class="flex flex-col gap-3 mb-4 flex-shrink-0">
+         <h3 class="text-xl font-black text-gray-800 dark:text-[#E0E0E0] tracking-tight flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-blue-500 dark:bg-[#E0E0E0] shadow-sm shadow-blue-300 dark:shadow-none"></span>
+            ${freq} Tasks
+         </h3>
+         
+         <div class="flex flex-wrap items-center gap-2 w-full">
+            <div class="flex bg-gray-200/80 dark:bg-[#121212] p-1 rounded-xl shadow-inner flex-shrink-0">
+               <button id="tab-${freq}-active" onclick="window.Dashboard.switchSectionTab('${freq}', 'active')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus:outline-none ${tabActiveBg}">Active</button>
+               <button id="tab-${freq}-completed" onclick="window.Dashboard.switchSectionTab('${freq}', 'completed')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus:outline-none ${tabCompBg}">Completed</button>
+            </div>
+            <button onclick="window.Dashboard.toggleSectionBulk('${freq}')" class="px-3 py-1.5 text-xs font-bold text-gray-500 dark:text-[#B0B0B0] bg-white dark:bg-[#121212] border border-gray-200 dark:border-transparent hover:bg-gray-50 dark:hover:bg-[#888888] hover:text-blue-600 dark:hover:text-[#121212] rounded-xl transition shadow-sm focus:outline-none flex items-center gap-1.5">
+               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+               Bulk
+            </button>
+         </div>
+      </div>
+
+      <div id="bulk-bar-${freq}" class="hidden flex-shrink-0 bg-blue-50 dark:bg-[#121212] p-4 rounded-2xl border border-blue-100 dark:border-[#888888] shadow-sm mb-4 items-center flex-wrap gap-4 transition-all">
+         <div class="flex items-center gap-2 border-r border-blue-200 dark:border-[#444444] pr-4">
+            <span class="bg-blue-600 dark:bg-[#E0E0E0] text-white dark:text-[#121212] text-xs font-black px-2.5 py-1 rounded-md" id="bulk-count-${freq}">0</span>
+            <span class="text-xs font-bold text-blue-800 dark:text-[#E0E0E0] uppercase tracking-widest">Selected</span>
+         </div>
+         
+         <div class="flex items-center gap-2">
+            <select id="bulk-status-${freq}" class="text-xs font-bold border border-white dark:border-[#444444] rounded-lg px-3 py-1.5 bg-white dark:bg-[#444444] text-gray-900 dark:text-[#E0E0E0] focus:outline-none cursor-pointer shadow-sm modern-select">
+               <option value="">Set Status...</option>
+               <option value="Open">Open</option>
+               <option value="In-Progress">In-Progress</option>
+               <option value="Completed">Completed</option>
+               <option value="Done">Done</option>
+            </select>
+            <button onclick="window.Dashboard.executeSectionBulk('${freq}', 'status')" class="text-[10px] bg-white dark:bg-[#444444] hover:bg-gray-50 dark:hover:bg-[#888888] text-blue-700 dark:text-[#E0E0E0] border border-blue-200 dark:border-[#444444] px-3 py-1.5 rounded-lg font-bold transition shadow-sm">Apply</button>
+         </div>
+
+         <div class="flex items-center gap-2 border-l border-blue-200 dark:border-[#444444] pl-4">
+            <select id="bulk-assignee-${freq}" class="text-xs font-bold border border-white dark:border-[#444444] rounded-lg px-3 py-1.5 bg-white dark:bg-[#444444] text-gray-900 dark:text-[#E0E0E0] focus:outline-none cursor-pointer shadow-sm modern-select">
+               ${assigneesHtml}
+            </select>
+            <button onclick="window.Dashboard.executeSectionBulk('${freq}', 'assignedTo')" class="text-[10px] bg-white dark:bg-[#444444] hover:bg-gray-50 dark:hover:bg-[#888888] text-blue-700 dark:text-[#E0E0E0] border border-blue-200 dark:border-[#444444] px-3 py-1.5 rounded-lg font-bold transition shadow-sm">Apply</button>
+         </div>
+
+         <div class="flex items-center gap-2 border-l border-blue-200 dark:border-[#444444] pl-4">
+            <select id="bulk-category-${freq}" class="text-xs font-bold border border-white dark:border-[#444444] rounded-lg px-3 py-1.5 bg-white dark:bg-[#444444] text-gray-900 dark:text-[#E0E0E0] focus:outline-none cursor-pointer shadow-sm max-w-[150px] modern-select">
+               ${categoriesHtml}
+            </select>
+            <button onclick="window.Dashboard.executeSectionBulk('${freq}', 'taskType')" class="text-[10px] bg-white dark:bg-[#444444] hover:bg-gray-50 dark:hover:bg-[#888888] text-blue-700 dark:text-[#E0E0E0] border border-blue-200 dark:border-[#444444] px-3 py-1.5 rounded-lg font-bold transition shadow-sm">Apply</button>
+         </div>
+      </div>
+
+      <div id="section-list-headers-${freq}" class="hidden flex-shrink-0 px-5 pb-3 mb-2 border-b border-gray-200 dark:border-[#121212] flex items-center gap-4 text-[10px] font-black text-gray-400 dark:text-[#B0B0B0] uppercase tracking-widest">
+         <div class="flex-1 ml-[46px]">Task Name & Category</div>
+         <div class="hidden md:flex w-28">Priority</div>
+         <div class="w-36">Deadline</div>
+         <div class="w-[180px] text-right pr-4">Actions</div>
+      </div>
+
+      <div id="section-tasks-${freq}" class="flex-1 min-h-0 overflow-y-auto custom-scroll pr-1 pb-2"></div>
+    `;
+
+    return wrapper;
+  },
+
+  renderSectionTasks(freq) {
+    const container = document.getElementById(`section-tasks-${freq}`);
+    const listHeaders = document.getElementById(`section-list-headers-${freq}`);
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    const allFiltered = this.getFilteredTasks();
+    let sectionTasks = allFiltered.filter(t => this.getTaskFrequency(t) === freq);
+    
+    const currentTab = this.state.sectionTabs[freq];
+    if (currentTab === 'active') {
+      sectionTasks = sectionTasks.filter(t => t.status !== 'Completed' && t.status !== 'Done');
+    } else {
+      sectionTasks = sectionTasks.filter(t => t.status === 'Completed' || t.status === 'Done');
+    }
+
+    if (sectionTasks.length === 0) {
+      if(listHeaders) listHeaders.classList.add('hidden');
+      container.className = 'py-10 text-center text-gray-400 dark:text-[#B0B0B0] bg-white/50 dark:bg-[#121212]/50 rounded-2xl border border-dashed border-gray-200 dark:border-[#444444] mt-2';
+      container.innerHTML = '<span class="text-[11px] font-bold uppercase tracking-widest">No tasks in this view</span>';
+      return;
+    }
+
+    if (this.state.viewMode === 'list') {
+      if(listHeaders) listHeaders.classList.remove('hidden');
+      container.className = 'flex flex-col gap-2.5 overflow-x-auto hide-scrollbar flex-1 min-h-0';
+    } else {
+      if(listHeaders) listHeaders.classList.add('hidden');
+      container.className = 'grid grid-cols-1 gap-3 content-start flex-1 min-h-0 overflow-y-auto custom-scroll pr-1 pb-2';
+    }
+
+    const nowMs = new Date().getTime();
+    sectionTasks.forEach(task => {
+      if (this.state.viewMode === 'list') {
+        container.appendChild(this.createListCard(task, nowMs, freq));
+      } else {
+        container.appendChild(this.createGridCard(task, nowMs, freq));
+      }
+    });
+    
+    this.updateSectionBulkBar(freq);
+  },
+
+  switchSectionTab(freq, tab) {
+    this.state.sectionTabs[freq] = tab;
+    const btnActive = document.getElementById(`tab-${freq}-active`);
+    const btnComp = document.getElementById(`tab-${freq}-completed`);
+    
+    let activeClass = 'px-4 py-1.5 rounded-lg text-xs font-bold text-gray-900 bg-white shadow-sm dark:bg-[#888888] dark:text-[#121212] transition-all focus:outline-none';
+    let inactiveClass = 'px-4 py-1.5 rounded-lg text-xs font-bold text-gray-500 hover:text-gray-800 dark:text-[#B0B0B0] dark:hover:text-[#E0E0E0] transition-all focus:outline-none';
+
+    if (tab === 'active') {
+      btnActive.className = activeClass;
+      btnComp.className = inactiveClass;
+    } else {
+      btnComp.className = activeClass;
+      btnActive.className = inactiveClass;
+    }
+    
+    this.state.sectionSelectedTasks[freq].clear();
+    this.renderSectionTasks(freq);
+  },
+
+  toggleSectionBulk(freq) {
+    this.state.sectionBulkMode[freq] = !this.state.sectionBulkMode[freq];
+    this.state.sectionSelectedTasks[freq].clear();
+    
+    const bar = document.getElementById(`bulk-bar-${freq}`);
+    if (this.state.sectionBulkMode[freq]) {
+      bar.classList.remove('hidden');
+      bar.classList.add('flex');
+    } else {
+      bar.classList.add('hidden');
+      bar.classList.remove('flex');
+    }
+    
+    this.renderSectionTasks(freq);
+  },
+
+  toggleSelection(taskId, isChecked, freq) {
+    if (isChecked) this.state.sectionSelectedTasks[freq].add(taskId);
+    else this.state.sectionSelectedTasks[freq].delete(taskId);
+    
+    this.updateSectionBulkBar(freq);
+    this.renderSectionTasks(freq);
+  },
+
+  updateSectionBulkBar(freq) {
+    const countEl = document.getElementById(`bulk-count-${freq}`);
+    if (countEl) countEl.textContent = this.state.sectionSelectedTasks[freq].size;
+  },
+
+  executeSectionBulk(freq, field) {
+    const select = document.getElementById(`bulk-${field}-${freq}`);
+    const val = select.value;
+    if(!val) {
+      if (typeof toastError === "function") toastError('Please select a value');
+      return;
+    }
+    
+    const taskIds = Array.from(this.state.sectionSelectedTasks[freq]);
+    if(taskIds.length === 0) return;
+    
+    const payload = { taskIds, field, value: val };
+    select.disabled = true;
+    
+    google.script.run
+       .withSuccessHandler(res => {
+          const response = JSON.parse(res);
+          if (response.success) {
+             if (typeof showToast === "function") showToast(`Updated ${response.updatedCount} tasks!`, 'success');
+             
+             taskIds.forEach(id => {
+                const t = this.state.tasks.find(x => x.id === id);
+                if (t) {
+                   t[field] = val;
+                   t.updatedAt = new Date().toISOString();
+                }
+             });
+             
+             this.state.sectionSelectedTasks[freq].clear();
+             this.toggleSectionBulk(freq);
+             this.renderSectionTasks(freq);
+             this.calculateKPIs(this.getFilteredTasks());
+             this.renderPersonalProgress();
+          }
+       })
+       .withFailureHandler(err => {
+          if (typeof toastError === "function") toastError('Bulk update failed: ' + err.message);
+          select.disabled = false;
+       })
+       .API_bulkUpdate(JSON.stringify(payload));
+  },
+
+  changeStatus(taskId, newStatus, freq) {
+    const payload = { id: taskId, status: newStatus };
+    
+    const t = this.state.tasks.find(x => x.id === taskId);
+    if(t) {
+       t.status = newStatus;
+       t.updatedAt = new Date().toISOString();
+    }
+    
+    this.renderSectionTasks(freq);
+    this.calculateKPIs(this.getFilteredTasks());
+    this.renderPersonalProgress();
+    
+    google.script.run
+      .withSuccessHandler(res => {
+        if (typeof showToast === "function") showToast(`Moved to ${newStatus}`, 'success'); 
+      })
+      .withFailureHandler(err => {
+        if (typeof toastError === "function") toastError('Failed to update: ' + err.message); 
+        this.init(); 
+      })
+      .API_updateTaskStatus(JSON.stringify(payload));
+  },
+
+  createGridCard(task, nowMs, freq) {
+    const card = document.createElement('div');
+    const isSelected = this.state.sectionSelectedTasks[freq].has(task.id);
+    
+    const timeState = this.getTaskTimeState(task, nowMs);
+    const isCompleted = task.status === 'Completed' || task.status === 'Done';
+
+    let borderClass = 'border-gray-100 dark:border-[#121212]';
+    if (isSelected) borderClass = 'border-blue-500 dark:border-[#E0E0E0] ring-1 ring-blue-100 dark:ring-[#888888] bg-blue-50/20 dark:bg-[#888888]/20';
+    else if (timeState.isOverdue) borderClass = 'border-red-400 dark:border-[#888888] ring-1 ring-red-400 dark:ring-transparent shadow-[0_0_10px_rgba(248,113,113,0.15)] dark:shadow-none bg-red-50/10 dark:bg-[#121212]';
+    else if (timeState.isNearOverdue) borderClass = 'border-orange-400 dark:border-[#888888] ring-1 ring-orange-400 dark:ring-transparent shadow-[0_0_10px_rgba(251,146,60,0.15)] dark:shadow-none bg-orange-50/10 dark:bg-[#121212]';
+
+    card.className = `bg-white dark:bg-[#121212] p-3.5 rounded-[20px] shadow-sm border transition-all duration-200 flex flex-col justify-between min-h-[85px] relative hover:-translate-y-1 hover:shadow-md ${borderClass}`;
+    card.id = `task-grid-${task.id}`;
+    
+    const typeConfigObj = (window.AppConfig ? window.AppConfig.taskTypes : []).find(t => t.label === task.taskType) || { color: '#B0B0B0' };
+    let bgOpacityColor = typeConfigObj.color; if(bgOpacityColor.startsWith('#')) bgOpacityColor += '20'; 
+
+    const topRow = document.createElement('div'); topRow.className = 'flex justify-between items-start gap-2 mb-2';
+    const titleArea = document.createElement('div'); titleArea.className = 'flex items-start gap-2 flex-1 min-w-0'; 
+
+    if (this.state.sectionBulkMode[freq]) {
+      const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.className = 'custom-checkbox mt-0.5 flex-shrink-0'; checkbox.checked = isSelected;
+      checkbox.onclick = (e) => { e.stopPropagation(); this.toggleSelection(task.id, checkbox.checked, freq); }; titleArea.appendChild(checkbox);
+    }
+
+    const title = document.createElement('div'); title.className = 'text-[13px] font-black text-gray-900 dark:text-[#E0E0E0] leading-snug truncate cursor-pointer hover:text-blue-600 dark:hover:text-white transition-colors w-full';
+    title.textContent = task.title || 'Untitled Task'; title.onclick = () => { if(window.ViewTaskModal) window.ViewTaskModal.open(task.id); }; titleArea.appendChild(title);
+
+    let priorityColor = 'text-gray-500 bg-gray-100 border-gray-100 dark:bg-[#444444] dark:border-[#444444] dark:text-[#E0E0E0]';
+    if(task.priority) { const pLow = task.priority.toLowerCase(); if(pLow === 'high') priorityColor = 'text-red-600 bg-red-50 border border-red-100 dark:bg-[#888888] dark:border-[#888888] dark:text-[#121212]'; if(pLow === 'medium') priorityColor = 'text-blue-600 bg-blue-50 border border-blue-100 dark:bg-[#444444] dark:border-[#444444] dark:text-[#E0E0E0]'; }
+    const priorityBadge = document.createElement('div'); priorityBadge.className = `text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-wider whitespace-nowrap flex-shrink-0 ${priorityColor}`; priorityBadge.textContent = task.priority || 'None';
+
+    topRow.appendChild(titleArea); topRow.appendChild(priorityBadge);
+
+    const midRow = document.createElement('div'); midRow.className = `flex flex-col gap-1 mb-2 ${this.state.sectionBulkMode[freq] ? 'ml-7' : ''}`; 
+    const typeBadge = document.createElement('div'); typeBadge.className = 'text-[9px] font-bold px-2 py-1 rounded-md text-gray-700 dark:text-[#121212] uppercase tracking-widest w-max max-w-full truncate shadow-sm';
+    typeBadge.style.backgroundColor = document.body.classList.contains('dark-mode') ? '#888888' : bgOpacityColor; 
+    typeBadge.style.border = `1px solid ${document.body.classList.contains('dark-mode') ? '#B0B0B0' : typeConfigObj.color+'40'}`; 
+    typeBadge.textContent = task.taskType || 'General';
+    const subTypeBadge = document.createElement('div'); subTypeBadge.className = 'text-[10px] text-gray-400 dark:text-[#B0B0B0] font-semibold truncate flex items-center gap-1';
+    subTypeBadge.innerHTML = task.subType && task.subType !== 'N/A' ? `<svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg><span class="truncate">${task.subType}</span>` : '';
+
+    midRow.appendChild(typeBadge); if(task.subType && task.subType !== 'N/A') midRow.appendChild(subTypeBadge);
+
+    const bottomRow = document.createElement('div'); bottomRow.className = 'flex justify-between items-center pt-2.5 border-t border-gray-50 dark:border-[#444444] mt-auto';
+    const infoCol = document.createElement('div'); infoCol.className = 'flex flex-col min-w-0 mr-2'; 
+    
+    let deadlineStr = '--', deadlineColor = 'text-gray-400 dark:text-[#B0B0B0]';
+    if(task.deadline) {
+      const d = new Date(task.deadline); const timeString = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      deadlineStr = (d.toDateString() === new Date().toDateString()) ? `Today, ${timeString}` : `${d.toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}, ${timeString}`;
+    } else if (timeState.isOverdue) deadlineStr = timeState.reason || 'Overdue'; else if (task.title && /^\d{4}_\d{2}_\d{2}/.test(task.title)) deadlineStr = 'Daily Routine';
+    
+    if (timeState.isOverdue) deadlineColor = 'text-red-600 dark:text-[#E0E0E0] font-black' + (!isCompleted ? ' animate-pulse' : '');
+    else if (timeState.isNearOverdue) deadlineColor = 'text-orange-500 dark:text-[#E0E0E0] font-bold'; else if (isCompleted) deadlineColor = 'text-green-600 dark:text-[#E0E0E0] font-bold';
+
+    infoCol.innerHTML = `<span class="text-[9px] font-bold text-gray-400 dark:text-[#888888] uppercase tracking-widest mb-0.5 truncate">Deadline / Status</span><span class="text-[11px] ${deadlineColor} flex items-center gap-1 font-medium truncate"><svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><span class="truncate">${deadlineStr}</span></span>`;
+
+    const actionsCol = document.createElement('div'); actionsCol.className = 'flex items-center gap-2 flex-shrink-0';
+    const viewBtn = document.createElement('button'); viewBtn.className = 'text-[9px] font-black uppercase tracking-wider text-blue-600 dark:text-[#121212] bg-blue-50 dark:bg-[#B0B0B0] hover:bg-blue-100 dark:hover:bg-[#E0E0E0] px-2.5 py-1.5 rounded-lg transition-colors focus:outline-none';
+    viewBtn.textContent = 'View'; viewBtn.onclick = () => { if(window.ViewTaskModal) window.ViewTaskModal.open(task.id); };
+
+    const statusSelect = document.createElement('select'); statusSelect.className = 'text-[10px] font-bold border border-gray-200 dark:border-[#444444] rounded-lg pl-2 pr-7 py-1.5 bg-gray-50 dark:bg-[#444444] hover:bg-gray-100 dark:hover:bg-[#888888] focus:outline-none text-gray-700 dark:text-[#E0E0E0] cursor-pointer modern-select transition-colors shadow-sm';
+    let allowedStatuses = (typeConfigObj && typeConfigObj.statuses && typeConfigObj.statuses.length > 0) ? [...typeConfigObj.statuses] : ['Open', 'In-Progress', 'Completed'];
+    if (task.status && !allowedStatuses.includes(task.status)) allowedStatuses.push(task.status);
+    allowedStatuses.forEach(statusOpt => { const option = document.createElement('option'); option.value = option.textContent = statusOpt; if (task.status === statusOpt) option.selected = true; statusSelect.appendChild(option); });
+    statusSelect.onchange = (e) => { statusSelect.disabled = true; statusSelect.classList.add('opacity-50', 'cursor-wait'); window.Dashboard.changeStatus(task.id, e.target.value, freq); };
+
+    actionsCol.appendChild(viewBtn); actionsCol.appendChild(statusSelect);
+    bottomRow.appendChild(infoCol); bottomRow.appendChild(actionsCol);
+    card.appendChild(topRow); card.appendChild(midRow); card.appendChild(bottomRow);
+
+    return card;
+  },
+
+  createListCard(task, nowMs, freq) {
+    const row = document.createElement('div');
+    const isSelected = this.state.sectionSelectedTasks[freq].has(task.id);
+    const timeState = this.getTaskTimeState(task, nowMs);
+    const isCompleted = task.status === 'Completed' || task.status === 'Done';
+
+    let rowBorder = 'border-l-4 border-transparent';
+    let bgClass = 'bg-white dark:bg-[#121212] hover:bg-gray-50 dark:hover:bg-[#444444]';
+    
+    if (isSelected) { bgClass = 'bg-blue-50/40 dark:bg-[#444444] ring-1 ring-blue-300 dark:ring-[#B0B0B0]'; rowBorder = 'border-l-4 border-blue-500 dark:border-[#E0E0E0]'; }
+    else if (timeState.isOverdue) { bgClass = 'bg-red-50/20 dark:bg-[#444444]/50'; rowBorder = 'border-l-4 border-red-500 dark:border-[#888888]'; }
+    else if (timeState.isNearOverdue) { rowBorder = 'border-l-4 border-orange-400 dark:border-[#B0B0B0]'; }
+
+    row.className = `flex items-center gap-4 px-4 py-3 rounded-2xl shadow-sm border border-gray-100 dark:border-[#444444] transition-all duration-200 hover:shadow-md ${bgClass} ${rowBorder}`;
+    row.id = `task-list-${task.id}`;
+
+    const typeConfigObj = (window.AppConfig ? window.AppConfig.taskTypes : []).find(t => t.label === task.taskType) || { color: '#B0B0B0' };
+    
+    let priorityColor = 'text-gray-500 bg-gray-100 border-gray-200 dark:bg-[#444444] dark:border-[#444444] dark:text-[#E0E0E0]';
+    if(task.priority) { const pLow = task.priority.toLowerCase(); if(pLow === 'high') priorityColor = 'text-red-700 bg-red-50 border-red-200 dark:bg-[#888888] dark:border-[#888888] dark:text-[#121212]'; if(pLow === 'medium') priorityColor = 'text-blue-700 bg-blue-50 border-blue-200 dark:bg-[#444444] dark:border-[#444444] dark:text-[#E0E0E0]'; }
+
+    let deadlineStr = '--', deadlineColor = 'text-gray-400 dark:text-[#B0B0B0]';
+    if(task.deadline) {
+      const d = new Date(task.deadline); const timeString = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      deadlineStr = (d.toDateString() === new Date().toDateString()) ? `Today, ${timeString}` : `${d.toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}, ${timeString}`;
+    } else if (timeState.isOverdue) deadlineStr = timeState.reason || 'Overdue'; else if (task.title && /^\d{4}_\d{2}_\d{2}/.test(task.title)) deadlineStr = 'Daily Routine';
+    
+    if (timeState.isOverdue) deadlineColor = 'text-red-600 dark:text-[#E0E0E0] font-black' + (!isCompleted ? ' animate-pulse' : '');
+    else if (timeState.isNearOverdue) deadlineColor = 'text-orange-500 dark:text-[#E0E0E0] font-bold'; else if (isCompleted) deadlineColor = 'text-green-600 dark:text-[#E0E0E0] font-bold';
+
+    const titleArea = document.createElement('div');
+    titleArea.className = 'flex items-center gap-3 flex-1 min-w-0';
+    
+    if (this.state.sectionBulkMode[freq]) {
+      const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.className = 'custom-checkbox flex-shrink-0'; checkbox.checked = isSelected;
+      checkbox.onclick = (e) => { e.stopPropagation(); this.toggleSelection(task.id, checkbox.checked, freq); }; titleArea.appendChild(checkbox);
+    }
+
+    const titleCol = document.createElement('div'); titleCol.className = 'flex flex-col min-w-0';
+    const titleText = document.createElement('span'); titleText.className = 'text-[14px] font-black text-gray-900 dark:text-[#E0E0E0] truncate hover:text-blue-600 dark:hover:text-white cursor-pointer transition-colors';
+    titleText.textContent = task.title || 'Untitled Task'; titleText.onclick = () => { if(window.ViewTaskModal) window.ViewTaskModal.open(task.id); };
+    
+    const catText = document.createElement('div'); catText.className = 'text-[10px] text-gray-500 dark:text-[#B0B0B0] font-bold uppercase tracking-widest mt-0.5 truncate flex items-center gap-1.5';
+    let safeColor = document.body.classList.contains('dark-mode') ? '#888888' : typeConfigObj.color;
+    catText.innerHTML = `<span class="w-2 h-2 rounded-full" style="background-color: ${safeColor}"></span> ${task.taskType} ${task.subType && task.subType !== 'N/A' ? `<span class="text-gray-300 dark:text-[#444444]">/</span> ${task.subType}` : ''}`;
+    
+    titleCol.appendChild(titleText); titleCol.appendChild(catText); titleArea.appendChild(titleCol);
+    row.appendChild(titleArea);
+
+    const prioCol = document.createElement('div'); prioCol.className = 'hidden md:flex w-28 flex-shrink-0 items-center';
+    prioCol.innerHTML = `<span class="text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-wider border shadow-sm ${priorityColor}">${task.priority || 'None'}</span>`;
+    row.appendChild(prioCol);
+
+    const dlCol = document.createElement('div'); dlCol.className = 'w-36 flex-shrink-0 flex items-center';
+    dlCol.innerHTML = `<span class="text-xs ${deadlineColor} flex items-center gap-1 font-medium truncate"><svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><span class="truncate">${deadlineStr}</span></span>`;
+    row.appendChild(dlCol);
+
+    const actionsCol = document.createElement('div'); actionsCol.className = 'w-[180px] flex items-center justify-end gap-2 flex-shrink-0 pr-4';
+    
+    const viewBtn = document.createElement('button'); viewBtn.className = 'text-[10px] font-black uppercase tracking-wider text-blue-600 dark:text-[#121212] bg-blue-50 dark:bg-[#B0B0B0] hover:bg-blue-100 dark:hover:bg-[#E0E0E0] px-3 py-1.5 rounded-lg transition-colors focus:outline-none shadow-sm';
+    viewBtn.textContent = 'View'; viewBtn.onclick = () => { if(window.ViewTaskModal) window.ViewTaskModal.open(task.id); };
+
+    const statusSelect = document.createElement('select'); statusSelect.className = 'text-xs font-bold border border-gray-200 dark:border-[#444444] rounded-lg pl-3 pr-8 py-1.5 bg-gray-50 dark:bg-[#444444] text-gray-700 dark:text-[#E0E0E0] hover:bg-white dark:hover:bg-[#888888] focus:outline-none cursor-pointer modern-select transition-colors shadow-sm';
+    let allowedStatuses = (typeConfigObj && typeConfigObj.statuses && typeConfigObj.statuses.length > 0) ? [...typeConfigObj.statuses] : ['Open', 'In-Progress', 'Completed'];
+    if (task.status && !allowedStatuses.includes(task.status)) allowedStatuses.push(task.status);
+    allowedStatuses.forEach(statusOpt => { const option = document.createElement('option'); option.value = option.textContent = statusOpt; if (task.status === statusOpt) option.selected = true; statusSelect.appendChild(option); });
+    statusSelect.onchange = (e) => { statusSelect.disabled = true; statusSelect.classList.add('opacity-50', 'cursor-wait'); window.Dashboard.changeStatus(task.id, e.target.value, freq); };
+
+    actionsCol.appendChild(viewBtn); actionsCol.appendChild(statusSelect);
+    row.appendChild(actionsCol);
+
+    return row;
+  },
+
+  setLoading(isLoading) {
+    const loader = document.getElementById('dash-loading');
+    const container = document.getElementById('main-sections-container');
+    if (!loader || !container) return;
+
+    if (isLoading) {
+      loader.classList.remove('hidden');
+      container.style.display = 'none'; 
+    } else {
+      loader.classList.add('hidden');
+      container.style.display = ''; 
+    }
+  }
+};
+</script>

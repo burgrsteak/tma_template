@@ -1,0 +1,1082 @@
+<div id="task-modal-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden flex items-center justify-center backdrop-blur-sm transition-opacity">
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh] overflow-hidden transform scale-95 transition-transform duration-200" id="task-modal-content">
+    
+    <div class="px-8 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+      <h3 class="text-xl font-black text-gray-900 tracking-tight">Create New Task</h3>
+      <button onclick="TaskModal.close()" class="text-gray-400 hover:text-gray-600 bg-white hover:bg-gray-100 p-2 rounded-full transition focus:outline-none shadow-sm border border-gray-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div class="p-8 overflow-y-auto flex-1 space-y-6">
+      
+      <div>
+        <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2 flex justify-between items-end">
+          <span>Task Title</span>
+          <span class="text-[9px] text-gray-400 font-medium normal-case mt-0.5">(Leave blank for auto-title)</span>
+        </label>
+        <input type="text" id="modal-title" class="w-full text-lg font-bold border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition shadow-sm bg-gray-50 focus:bg-white" placeholder="What needs to be done?">
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        
+        <div class="flex-1 flex flex-col relative" id="tm-assignee-container">
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide">Assign To</label>
+            <button type="button" onclick="window.TaskModal.assignToMe()" class="text-[10px] text-blue-600 hover:text-blue-800 hover:underline font-bold focus:outline-none transition-colors">Assign to me</button>
+          </div>
+          
+          <div class="w-full min-h-[42px] text-sm font-semibold text-gray-800 border border-gray-200 rounded-xl px-2 py-1.5 bg-gray-50 hover:bg-white focus-within:bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition shadow-sm cursor-text flex flex-wrap gap-1.5 items-center relative" onclick="document.getElementById('tm-assignee-input').focus()">
+            <div id="tm-assignee-pills" class="flex flex-wrap gap-1.5 items-center"></div>
+            <input type="text" id="tm-assignee-input" oninput="window.TaskModal.filterAssignees(this.value)" onfocus="window.TaskModal.filterAssignees(this.value)" class="flex-1 min-w-[100px] bg-transparent border-none focus:outline-none focus:ring-0 text-sm p-1 placeholder-gray-400 font-medium" placeholder="Search names...">
+          </div>
+          
+          <div id="tm-assignee-dropdown" class="hidden absolute top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto p-1">
+            </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2">Priority</label>
+          <select id="modal-priority" class="w-full text-sm font-semibold text-gray-800 border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:bg-white focus:border-blue-500 focus:outline-none shadow-sm cursor-pointer modern-select"></select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2 flex justify-between">
+            <span>Deadline</span>
+          </label>
+          <input type="datetime-local" id="modal-deadline" class="w-full text-sm font-semibold text-gray-800 border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:bg-white focus:border-blue-500 focus:outline-none shadow-sm cursor-pointer">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-5">
+        <div>
+          <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2">Category <span class="text-red-500">*</span></label>
+          <input type="text" id="modal-category" list="category-options" oninput="TaskModal.handleCategoryChange()" onchange="TaskModal.handleCategoryChange()" class="w-full text-sm font-semibold text-gray-800 border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:border-blue-500 focus:outline-none shadow-sm" placeholder="Select category...">
+          <datalist id="category-options"></datalist>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2">Subtype</label>
+          <select id="modal-subtype" class="w-full text-sm font-semibold text-gray-800 border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-100 focus:border-blue-500 focus:outline-none shadow-sm cursor-pointer transition-colors modern-select" disabled>
+            <option value="">Select Subtype</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="modal-dynamic-fields" class="space-y-4 bg-blue-50/50 p-5 rounded-xl border border-blue-100 hidden">
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2">Description / Notes</label>
+        <textarea id="modal-desc" rows="4" class="w-full text-sm font-medium text-gray-800 border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition shadow-sm resize-none bg-gray-50 focus:bg-white" placeholder="Add extra context here..."></textarea>
+      </div>
+
+    </div>
+
+    <div class="px-8 py-5 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 rounded-b-3xl">
+      <button onclick="TaskModal.close()" class="px-5 py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition shadow-sm">Cancel</button>
+      <button id="modal-submit-btn" onclick="TaskModal.submit()" class="px-8 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition shadow-md flex items-center justify-center min-w-[140px] transform hover:-translate-y-0.5">
+        Create Task
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div id="view-task-modal" class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden flex items-center justify-center z-50 transition-opacity p-4 backdrop-blur-sm">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[95vh] overflow-hidden transform transition-all duration-200 scale-95" id="view-task-modal-content">
+    
+    <div class="px-8 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+      <div class="flex items-center gap-3">
+        <h3 class="text-xl font-black text-gray-900 tracking-tight">Task Details</h3>
+        <span id="vt-id-badge" class="text-[11px] bg-blue-100 text-blue-800 px-2.5 py-1 rounded-md font-mono font-bold shadow-sm">...</span>
+      </div>
+      <button onclick="window.ViewTaskModal.close()" class="text-gray-400 hover:text-gray-600 bg-white hover:bg-gray-100 p-1.5 rounded-full transition focus:outline-none shadow-sm border border-gray-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div id="vt-loading" class="p-10 flex flex-col justify-center items-center h-64">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-blue-600 mb-4"></div>
+      <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Loading Task Data...</p>
+    </div>
+
+    <div id="vt-content" class="flex-1 overflow-y-auto hidden p-6 md:p-8 space-y-8 bg-white">
+      
+      <form id="view-task-form" onsubmit="window.ViewTaskModal.submit(event)" class="space-y-6">
+        <input type="hidden" id="vt-id">
+        
+        <div>
+          <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Task Title</label>
+          <input type="text" id="vt-title" required class="w-full text-xl md:text-2xl font-black text-gray-900 border-b-2 border-transparent hover:border-gray-200 py-2 focus:border-blue-500 outline-none transition-colors">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 shadow-sm">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Current Status</label>
+            <select id="vt-status" class="w-full text-lg p-2 bg-transparent focus:outline-none cursor-pointer font-black text-blue-700 modern-select"></select>
+          </div>
+          
+          <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm">
+            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Priority Level</label>
+            <select id="vt-priority" class="w-full text-lg p-2 bg-transparent focus:outline-none cursor-pointer font-bold text-gray-700 modern-select">
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+              <option value="None">None</option>
+            </select>
+          </div>
+
+          <div id="vt-sla-box" class="bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm hidden flex-col justify-center relative overflow-hidden">
+            <div class="absolute right-0 top-0 opacity-10 pointer-events-none transform translate-x-4 -translate-y-4">
+              <svg class="w-24 h-24 text-gray-900" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/><path d="M13 7h-2v5.414l3.293 3.293 1.414-1.414L13 11.586z"/></svg>
+            </div>
+            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 z-10">SLA Time Remaining</label>
+            <div id="vt-sla-timer" class="text-xl font-black text-gray-800 z-10 font-mono tracking-tight">--:--:--</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-2">
+          <div>
+            <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">Assigned Agent</label>
+            <select id="vt-assigned" class="w-full text-sm font-semibold border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 hover:bg-white focus:border-blue-500 outline-none transition-colors cursor-pointer modern-select"></select>
+          </div>
+          
+          <div class="flex flex-col relative">
+            <label class="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">
+              Category Type
+              <div class="group relative flex items-center justify-center cursor-help">
+                <svg class="w-4 h-4 text-blue-500 hover:text-blue-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col bg-gray-800 text-white text-xs rounded-xl p-4 min-w-[16rem] w-max max-w-[85vw] sm:max-w-sm z-50 shadow-2xl border border-gray-700 pointer-events-none transform transition-all duration-200">
+                  <span id="vt-tooltip-freq" class="font-black text-blue-400 uppercase tracking-widest mb-1.5 text-[10px]">Freq: --</span>
+                  <span id="vt-tooltip-desc" class="text-gray-200 leading-relaxed font-medium whitespace-pre-wrap">No description provided.</span>
+                  <div id="vt-tooltip-tools" class="mt-3 pt-3 border-t border-gray-600 flex flex-wrap gap-1.5"></div>
+                  <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-gray-800"></div>
+                </div>
+              </div>
+            </label>
+            <select id="vt-type" disabled class="w-full text-sm font-bold border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-100 text-gray-500 cursor-not-allowed outline-none shadow-inner appearance-none"></select>
+          </div>
+
+          <div id="vt-subtype-wrapper">
+            <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">Sub-Type</label>
+            <select id="vt-sub-type" class="w-full text-sm font-semibold border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 hover:bg-white focus:border-blue-500 outline-none transition-colors cursor-pointer modern-select"></select>
+          </div>
+
+          <div class="sm:col-span-3 mt-1">
+            <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">Deadline</label>
+            <input type="datetime-local" id="vt-deadline" class="w-full sm:w-1/3 text-sm font-semibold border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 hover:bg-white focus:border-blue-500 outline-none transition-colors cursor-pointer">
+          </div>
+        </div>
+
+        <hr class="border-gray-100">
+
+        <div id="vt-custom-data-wrapper" class="hidden bg-indigo-50/40 border border-indigo-100 rounded-2xl p-5 shadow-sm">
+           <h4 class="text-[11px] font-black text-indigo-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+             <span class="p-1.5 bg-indigo-100 rounded-md"><svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></span>
+             Custom Form Data
+           </h4>
+           <div id="vt-custom-data-content" class="space-y-4">
+           </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex justify-between items-center">
+            <span>Detailed Description</span>
+            <button type="button" onclick="window.ViewTaskModal.toggleEditDesc()" id="vt-desc-edit-btn" class="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-[10px] font-black transition-colors focus:outline-none">Edit Text</button>
+          </label>
+          
+          <div id="vt-desc-view" class="w-full text-sm border border-gray-200 bg-gray-50 rounded-xl px-5 py-4 text-gray-800 whitespace-pre-wrap min-h-[100px] shadow-inner font-medium"></div>
+          
+          <textarea id="vt-desc" rows="4" class="hidden w-full text-sm border border-blue-300 rounded-xl px-5 py-4 focus:outline-none focus:ring-4 focus:ring-blue-500/20 text-gray-800 font-medium bg-white resize-none shadow-sm"></textarea>
+        </div>
+
+      </form>
+
+      <div class="pt-8 border-t border-gray-100">
+        <h4 class="text-xs font-black text-gray-800 mb-5 uppercase tracking-widest flex items-center gap-2">
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          History & Activity Feed
+        </h4>
+        
+        <div id="vt-activity-list" class="space-y-4 mb-6 bg-gray-50/50 p-5 rounded-2xl max-h-72 overflow-y-auto border border-gray-100 shadow-inner">
+        </div>
+
+        <div class="flex gap-3">
+          <textarea id="vt-new-comment" rows="1" placeholder="Add a note or update..." class="flex-1 text-sm font-medium border border-gray-200 rounded-xl px-4 py-3 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none shadow-sm transition-colors"></textarea>
+          <button onclick="window.ViewTaskModal.postComment()" id="btn-post-comment" class="bg-gray-900 text-white text-sm font-bold px-6 py-2 rounded-xl hover:bg-gray-800 transition shadow-md whitespace-nowrap focus:outline-none">Post Update</button>
+        </div>
+      </div>
+      
+    </div>
+
+    <div class="px-8 py-5 border-t border-gray-100 bg-gray-50 flex justify-between items-center shrink-0 rounded-b-2xl">
+      <button type="button" onclick="window.ViewTaskModal.deleteTask()" id="btn-delete-task" class="px-4 py-2 text-sm text-red-500 font-bold hover:bg-red-50 hover:text-red-700 rounded-lg transition focus:outline-none">Delete Task</button>
+      <div class="flex space-x-3">
+        <button type="button" onclick="window.ViewTaskModal.close()" class="px-6 py-2.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition shadow-sm font-bold focus:outline-none">Cancel</button>
+        <button type="submit" form="view-task-form" id="btn-save-task" class="px-8 py-2.5 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition shadow-md font-bold focus:outline-none flex items-center justify-center min-w-[140px] transform hover:-translate-y-0.5">Save Changes</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .modern-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25em 1.25em;
+  }
+</style>
+
+<script>
+window.TaskModal = {
+  selectedAssignees: [],
+
+  open() {
+    this.populateDropdowns();
+    this.resetForm(); 
+    this.setupDropdownListener();
+    document.getElementById('task-modal-overlay').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('task-modal-content').classList.remove('scale-95');
+      document.getElementById('task-modal-content').classList.add('scale-100');
+    }, 10);
+  },
+
+  close() {
+    document.getElementById('task-modal-content').classList.remove('scale-100');
+    document.getElementById('task-modal-content').classList.add('scale-95');
+    setTimeout(() => { document.getElementById('task-modal-overlay').classList.add('hidden'); }, 150);
+  },
+
+  setupDropdownListener() {
+    document.addEventListener('click', (e) => {
+      const container = document.getElementById('tm-assignee-container');
+      const dropdown = document.getElementById('tm-assignee-dropdown');
+      if (container && dropdown && !container.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+  },
+
+  resetForm() {
+    document.getElementById('modal-title').value = '';
+    document.getElementById('modal-desc').value = '';
+    document.getElementById('modal-deadline').value = ''; 
+    document.getElementById('modal-category').value = '';
+    
+    const prioSelect = document.getElementById('modal-priority');
+    if(prioSelect.options.length > 0) {
+      let hasMedium = Array.from(prioSelect.options).some(o => o.value === 'Medium');
+      prioSelect.value = hasMedium ? 'Medium' : prioSelect.options[0].value;
+    }
+    
+    this.selectedAssignees = [];
+    const searchInput = document.getElementById('tm-assignee-input');
+    if (searchInput) searchInput.value = '';
+    
+    this.updateAssigneePills();
+    if (typeof this.filterAssignees === 'function') this.filterAssignees('');
+  },
+
+  populateDropdowns() {
+    if (!window.AppConfig) return;
+    
+    const dropdown = document.getElementById('tm-assignee-dropdown');
+    if (dropdown && window.AppConfig.users) {
+      dropdown.innerHTML = '';
+      window.AppConfig.users.forEach(user => {
+        const item = document.createElement('div');
+        item.className = 'tm-assignee-item flex items-center gap-3 p-2.5 hover:bg-blue-50 rounded-lg cursor-pointer transition-colors';
+        item.dataset.email = user.email;
+        item.dataset.name = user.name;
+        item.dataset.role = user.role || 'Agent';
+        item.onclick = () => window.TaskModal.addAssignee(user.email, user.name, user.role);
+        
+        item.innerHTML = `
+          <div class="flex flex-col pointer-events-none">
+            <span class="text-xs font-bold text-gray-800">${user.name}</span>
+            <span class="text-[9px] font-bold uppercase tracking-widest text-gray-400">${user.role || 'Agent'}</span>
+          </div>
+        `;
+        dropdown.appendChild(item);
+      });
+    }
+
+    const prioritySelect = document.getElementById('modal-priority');
+    prioritySelect.innerHTML = '';
+    let keys = [];
+    if (window.AppConfig.timers) keys = Object.keys(window.AppConfig.timers);
+    if (!keys.includes('none')) keys.push('none');
+    const order = ['high', 'medium', 'low', 'none'];
+    keys.sort((a, b) => {
+      let iA = order.indexOf(a.toLowerCase()); let iB = order.indexOf(b.toLowerCase());
+      if (iA === -1) iA = 99; if (iB === -1) iB = 99;
+      return iA - iB;
+    });
+    keys.forEach(k => {
+      const capitalized = k.charAt(0).toUpperCase() + k.slice(1);
+      prioritySelect.innerHTML += `<option value="${capitalized}">${capitalized}</option>`;
+    });
+  },
+
+  filterAssignees(query) {
+    const items = document.querySelectorAll('.tm-assignee-item');
+    const lowerQuery = query.toLowerCase();
+    let hasVisible = false;
+
+    items.forEach(item => {
+      const name = item.dataset.name.toLowerCase();
+      const email = item.dataset.email.toLowerCase();
+      const isSelected = this.selectedAssignees.some(a => a.email === item.dataset.email);
+      
+      if (!isSelected && (name.includes(lowerQuery) || email.includes(lowerQuery))) {
+        item.style.display = 'flex';
+        hasVisible = true;
+      } else {
+        item.style.display = 'none';
+      }
+    });
+
+    const dropdown = document.getElementById('tm-assignee-dropdown');
+    if (hasVisible) {
+      dropdown.classList.remove('hidden');
+    } else {
+      dropdown.classList.add('hidden');
+    }
+  },
+
+  addAssignee(email, name, role) {
+    if (!this.selectedAssignees.some(a => a.email === email)) {
+      this.selectedAssignees.push({ email, name, role });
+      this.updateAssigneePills();
+    }
+    const input = document.getElementById('tm-assignee-input');
+    input.value = '';
+    input.focus();
+    this.filterAssignees('');
+  },
+
+  removeAssignee(email) {
+    this.selectedAssignees = this.selectedAssignees.filter(a => a.email !== email);
+    this.updateAssigneePills();
+    this.filterAssignees(document.getElementById('tm-assignee-input').value);
+  },
+
+  assignToMe() {
+    if (!window.CurrentUser || !window.CurrentUser.email) {
+      if (typeof toastError === "function") toastError("Could not verify your user session.");
+      return;
+    }
+    
+    this.selectedAssignees = [{
+      email: window.CurrentUser.email,
+      name: window.CurrentUser.name,
+      role: window.CurrentUser.role || 'Agent'
+    }];
+    
+    this.updateAssigneePills();
+    this.filterAssignees('');
+  },
+
+  updateAssigneePills() {
+    const pillsContainer = document.getElementById('tm-assignee-pills');
+    const input = document.getElementById('tm-assignee-input');
+    
+    pillsContainer.innerHTML = '';
+    
+    if (this.selectedAssignees.length > 0) {
+      input.placeholder = "Add more...";
+      this.selectedAssignees.forEach(user => {
+        const firstName = user.name.split(' ')[0];
+        pillsContainer.innerHTML += `
+          <span class="bg-blue-100 text-blue-800 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-blue-200 shadow-sm whitespace-nowrap flex items-center gap-1 cursor-default">
+            ${firstName}
+            <button type="button" onclick="event.stopPropagation(); window.TaskModal.removeAssignee('${user.email}')" class="hover:text-blue-900 focus:outline-none font-black text-xs ml-0.5">&times;</button>
+          </span>
+        `;
+      });
+    } else {
+      input.placeholder = "Search names...";
+    }
+    
+    this.handleAssigneeChange();
+  },
+
+  handleAssigneeChange() {
+    const catInput = document.getElementById('modal-category');
+    const catDataList = document.getElementById('category-options');
+    const currentSelectedCategory = catInput.value; 
+
+    let targetRole = null;
+    if (this.selectedAssignees.length > 0) {
+      targetRole = this.selectedAssignees[0].role;
+    }
+
+    catDataList.innerHTML = '';
+    let validCategories = [];
+    if (window.AppConfig && window.AppConfig.taskTypes) {
+      window.AppConfig.taskTypes.forEach(type => {
+        // FIX: If there are no restricted roles, it is available to everyone
+        const isGlobalTask = !type.allowedRoles || type.allowedRoles.length === 0;
+        const isUserAllowed = !targetRole || isGlobalTask || type.allowedRoles.includes(targetRole);
+
+        if (isUserAllowed) {
+          const opt = document.createElement('option'); 
+          opt.value = type.label;
+          catDataList.appendChild(opt); 
+          validCategories.push(type.label);
+        }
+      });
+    }
+    let isCategoryStillValid = validCategories.includes(currentSelectedCategory);
+    catInput.value = isCategoryStillValid ? currentSelectedCategory : '';
+    this.handleCategoryChange();
+  },
+
+  handleCategoryChange() {
+    const selectedLabel = document.getElementById('modal-category').value.trim();
+    const subSelect = document.getElementById('modal-subtype');
+    const prioritySelect = document.getElementById('modal-priority');
+    const metaContainer = document.getElementById('modal-dynamic-fields');
+    
+    const typeObj = (window.AppConfig && window.AppConfig.taskTypes) ? window.AppConfig.taskTypes.find(t => t.label === selectedLabel) : null;
+
+    if (!typeObj) {
+      subSelect.innerHTML = '<option value="">Select Subtype</option>';
+      subSelect.disabled = true; subSelect.classList.add('bg-gray-100'); subSelect.classList.remove('bg-white');
+      metaContainer.innerHTML = ''; metaContainer.classList.add('hidden');
+      return;
+    }
+
+    if (typeObj.defaultPriority) prioritySelect.value = typeObj.defaultPriority;
+    else prioritySelect.value = 'Medium';
+
+    subSelect.innerHTML = '<option value="">Select Subtype</option>';
+    if (typeObj.subTypes && typeObj.subTypes.length > 0) {
+      subSelect.disabled = false; subSelect.classList.remove('bg-gray-100'); subSelect.classList.add('bg-white');
+      typeObj.subTypes.forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; });
+    } else {
+      subSelect.disabled = true; subSelect.classList.add('bg-gray-100'); subSelect.classList.remove('bg-white');
+    }
+
+    metaContainer.innerHTML = '';
+    if (typeObj.metadata && typeObj.metadata.length > 0) {
+      metaContainer.classList.remove('hidden');
+      const titleEl = document.createElement('div');
+      titleEl.className = 'text-[10px] font-black text-blue-600 uppercase tracking-widest mb-3 border-b border-blue-200 pb-2';
+      titleEl.textContent = `${selectedLabel} Required Info`;
+      metaContainer.appendChild(titleEl);
+
+      typeObj.metadata.forEach(m => {
+        let fieldHtml = `<div class="mb-3"><label class="block text-[11px] font-bold text-blue-900 mb-1.5">${m.name}</label>`;
+        if (m.type === 'textarea') fieldHtml += `<textarea class="dynamic-meta-input w-full text-sm font-medium border border-blue-200 rounded-xl px-4 py-3 bg-white focus:border-blue-500 focus:outline-none resize-none shadow-sm" rows="2" data-label="${m.name}" placeholder="Enter ${m.name}..."></textarea>`;
+        else if (m.type === 'select') {
+          fieldHtml += `<select class="dynamic-meta-input w-full text-sm font-semibold border border-blue-200 rounded-xl px-4 py-2.5 bg-white focus:border-blue-500 focus:outline-none shadow-sm modern-select" data-label="${m.name}"><option value="">Select ${m.name}...</option>`;
+          (m.options || []).forEach(opt => { fieldHtml += `<option value="${opt}">${opt}</option>`; });
+          fieldHtml += `</select>`;
+        } 
+        else if (m.type === 'url') {
+          fieldHtml += `<div class="relative"><div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><svg class="h-4 w-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></div><input type="url" class="dynamic-meta-input w-full text-sm font-medium border border-blue-200 rounded-xl pl-9 pr-3 py-2.5 bg-white focus:border-blue-500 focus:outline-none shadow-sm" data-label="${m.name}" placeholder="https://example.com"></div>`;
+        }
+        else fieldHtml += `<input type="${m.type || 'text'}" class="dynamic-meta-input w-full text-sm font-medium border border-blue-200 rounded-xl px-4 py-2.5 bg-white focus:border-blue-500 focus:outline-none shadow-sm" data-label="${m.name}" placeholder="Enter ${m.name}...">`;
+        fieldHtml += `</div>`;
+        metaContainer.insertAdjacentHTML('beforeend', fieldHtml);
+      });
+    } else metaContainer.classList.add('hidden');
+  },
+
+  createTaskPromise(payload) {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(reject)
+        .API_createTask(JSON.stringify(payload));
+    });
+  },
+
+  async submit() {
+    let title = document.getElementById('modal-title').value.trim();
+    const category = document.getElementById('modal-category').value.trim();
+    const typeObj = (window.AppConfig && window.AppConfig.taskTypes) ? window.AppConfig.taskTypes.find(t => t.label === category) : null;
+
+    if (!category || !typeObj) {
+      if (typeof toastError === "function") toastError("A valid Category selection is required.");
+      return;
+    }
+
+    if (!title) {
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      title = `${yyyy}_${mm}_${dd}_${category}`;
+    }
+
+    const btn = document.getElementById('modal-submit-btn');
+    btn.innerHTML = `<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>`;
+    btn.disabled = true;
+
+    let metaObj = {};
+    document.querySelectorAll('.dynamic-meta-input').forEach(input => {
+      if(input.value.trim() !== '') {
+        metaObj[input.dataset.label] = input.value.trim();
+      }
+    });
+
+    let assignees = this.selectedAssignees.map(a => a.email);
+    if (assignees.length === 0) assignees = [""]; 
+
+    try {
+      for (const email of assignees) {
+        const payload = {
+          title: title,
+          taskType: category,
+          subType: document.getElementById('modal-subtype').value,
+          assignedTo: email,
+          priority: document.getElementById('modal-priority').value,
+          deadline: document.getElementById('modal-deadline').value, 
+          description: document.getElementById('modal-desc').value.trim(), 
+          metadata: JSON.stringify(metaObj) 
+        };
+        await this.createTaskPromise(payload);
+      }
+      
+      if (typeof showToast === "function") showToast(assignees.length > 1 ? `Bulk created ${assignees.length} tasks!` : "Task created successfully!", "success");
+      this.close();
+      if (window.Dashboard) window.Dashboard.init();
+      
+    } catch (error) {
+      if (typeof toastError === "function") toastError(error.message || "Failed to create task.");
+    } finally {
+      btn.innerHTML = 'Create Task'; 
+      btn.disabled = false;
+    }
+  }
+};
+
+window.ViewTaskModal = {
+  currentTask: null,
+  currentComments: [],
+  isEditingDesc: false,
+  editableDescription: '', 
+  slaInterval: null, 
+
+  linkify(inputText) {
+    if (!inputText) return '';
+    let htmlText = inputText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+    htmlText = htmlText.replace(urlRegex, function(url) {
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-blue-600 hover:bg-blue-700 px-2 py-0.5 rounded shadow-sm transition-colors my-0.5 ml-1">
+                Open Link <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+              </a>`;
+    });
+    return htmlText;
+  },
+
+  toggleEditDesc() {
+    this.isEditingDesc = !this.isEditingDesc;
+    const viewDiv = document.getElementById('vt-desc-view');
+    const editArea = document.getElementById('vt-desc');
+    const btn = document.getElementById('vt-desc-edit-btn');
+
+    if (this.isEditingDesc) {
+      viewDiv.classList.add('hidden');
+      editArea.classList.remove('hidden');
+      editArea.value = this.editableDescription; 
+      btn.textContent = 'Preview';
+      btn.classList.replace('text-blue-600', 'text-green-600');
+      btn.classList.replace('bg-blue-50', 'bg-green-50');
+      btn.classList.replace('hover:bg-blue-100', 'hover:bg-green-100');
+    } else {
+      editArea.classList.add('hidden');
+      viewDiv.classList.remove('hidden');
+      this.editableDescription = editArea.value; 
+      viewDiv.innerHTML = this.linkify(this.editableDescription); 
+      btn.textContent = 'Edit Text';
+      btn.classList.replace('text-green-600', 'text-blue-600');
+      btn.classList.replace('bg-green-50', 'bg-blue-50');
+      btn.classList.replace('hover:bg-green-100', 'hover:bg-blue-100');
+    }
+  },
+
+  open(taskId) {
+    document.getElementById('view-task-modal').classList.remove('hidden');
+    document.getElementById('vt-loading').classList.remove('hidden');
+    document.getElementById('vt-content').classList.add('hidden');
+    this.isEditingDesc = false; 
+    
+    if (this.slaInterval) clearInterval(this.slaInterval);
+
+    setTimeout(() => {
+      document.getElementById('view-task-modal-content').classList.remove('scale-95');
+      document.getElementById('view-task-modal-content').classList.add('scale-100');
+    }, 10);
+
+    google.script.run
+      .withSuccessHandler(responseJson => {
+        const response = JSON.parse(responseJson);
+        if (response.success) {
+          this.currentTask = response.data.task;
+          this.currentComments = response.data.comments || [];
+          this.renderForm();
+          this.renderActivityFeed(this.currentComments); 
+          this.startSlaTimer();
+        }
+      })
+      .withFailureHandler(err => {
+        if (typeof toastError === "function") toastError('Failed to load task: ' + err.message);
+        this.close();
+      })
+      .API_getTaskById(taskId);
+  },
+
+  close() {
+    if (this.slaInterval) clearInterval(this.slaInterval);
+    document.getElementById('view-task-modal-content').classList.remove('scale-100');
+    document.getElementById('view-task-modal-content').classList.add('scale-95');
+    setTimeout(() => {
+      document.getElementById('view-task-modal').classList.add('hidden');
+      this.currentTask = null;
+      this.currentComments = [];
+    }, 200);
+  },
+
+  startSlaTimer() {
+    const task = this.currentTask;
+    const slaBox = document.getElementById('vt-sla-box');
+    const timerEl = document.getElementById('vt-sla-timer');
+    
+    if (this.slaInterval) clearInterval(this.slaInterval);
+
+    const priority = (task.priority || '').toLowerCase();
+    const slaHours = (window.AppConfig && window.AppConfig.timers && window.AppConfig.timers[priority]) ? window.AppConfig.timers[priority] : 0;
+
+    if (!slaHours || task.status !== 'In-Progress') {
+        slaBox.classList.add('hidden');
+        return;
+    }
+
+    slaBox.classList.remove('hidden');
+
+    let startTime = new Date(task.createdAt).getTime();
+    const ipComments = this.currentComments.filter(c => c.message && c.message.includes('to **In-Progress**'));
+    
+    if (ipComments.length > 0) {
+        ipComments.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        startTime = new Date(ipComments[0].createdAt).getTime();
+    }
+
+    const expireTime = startTime + (slaHours * 60 * 60 * 1000);
+
+    const updateTimer = () => {
+        const now = new Date().getTime();
+        const diff = expireTime - now;
+
+        if (diff <= 0) {
+            timerEl.textContent = 'OVERDUE';
+            timerEl.className = 'text-2xl font-black text-red-600 animate-pulse font-sans';
+            clearInterval(this.slaInterval);
+
+            const alreadyLogged = this.currentComments.some(c => c.message && c.message.includes('🚨 **SYSTEM ALERT:** SLA Overdue'));
+            if (!alreadyLogged) {
+                 this.postSystemOverdueLog(task.id);
+                 if (typeof window.addNotification === "function") {
+                    window.addNotification("SLA Overdue!", `Task "${task.title}" has breached its SLA limit.`, "overdue", task.id);
+                 }
+            }
+            return;
+        }
+
+        const h = Math.floor(diff / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+        timerEl.textContent = `${h}h ${m}m ${s}s`;
+        if (h < 1) timerEl.className = 'text-xl font-black text-orange-500 font-mono tracking-tight animate-pulse';
+        else timerEl.className = 'text-xl font-black text-green-600 font-mono tracking-tight';
+    };
+
+    updateTimer();
+    this.slaInterval = setInterval(updateTimer, 1000);
+  },
+
+  postSystemOverdueLog(taskId) {
+      const payload = {
+        taskId: taskId,
+        message: `🚨 **SYSTEM ALERT:** SLA Overdue limit reached.`
+      };
+
+      google.script.run
+        .withSuccessHandler(() => {
+            this.currentComments.push({
+                message: payload.message,
+                createdAt: new Date().toISOString(),
+                user: window.CurrentUser ? window.CurrentUser.email : 'System'
+            });
+            this.renderActivityFeed(this.currentComments);
+        })
+        .API_addComment(JSON.stringify(payload));
+  },
+
+  renderForm() {
+    const task = this.currentTask;
+    
+    document.getElementById('vt-id').value = task.id;
+    document.getElementById('vt-id-badge').textContent = task.id.split('-')[0];
+    document.getElementById('vt-title').value = task.title;
+
+    let parsedValues = {};
+    try {
+        if (task.metadata && task.metadata.trim().startsWith('{')) {
+            parsedValues = JSON.parse(task.metadata);
+        }
+    } catch(e) { console.error("Failed to parse metadata", e); }
+
+    this.editableDescription = task.description || '';
+    document.getElementById('vt-desc').value = this.editableDescription;
+    document.getElementById('vt-desc-view').innerHTML = this.linkify(this.editableDescription);
+    
+    document.getElementById('vt-desc-view').classList.remove('hidden');
+    document.getElementById('vt-desc').classList.add('hidden');
+    document.getElementById('vt-desc-edit-btn').textContent = 'Edit Text';
+    document.getElementById('vt-desc-edit-btn').classList.replace('text-green-600', 'text-blue-600');
+    document.getElementById('vt-desc-edit-btn').classList.replace('bg-green-50', 'bg-blue-50');
+    document.getElementById('vt-desc-edit-btn').classList.replace('hover:bg-green-100', 'hover:bg-blue-100');
+
+    document.getElementById('vt-priority').value = task.priority || 'Medium';
+
+    if (task.deadline) {
+      try {
+        const d = new Date(task.deadline);
+        if (!isNaN(d.getTime())) {
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const dd = String(d.getDate()).padStart(2, '0');
+          const hh = String(d.getHours()).padStart(2, '0');
+          const min = String(d.getMinutes()).padStart(2, '0');
+          document.getElementById('vt-deadline').value = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+        } else {
+          document.getElementById('vt-deadline').value = task.deadline.slice(0, 16);
+        }
+      } catch(e) {
+        document.getElementById('vt-deadline').value = '';
+      }
+    } else {
+      document.getElementById('vt-deadline').value = '';
+    }
+
+    const typeObj = window.AppConfig.taskTypes.find(t => t.label === task.taskType);
+    const metaContainer = document.getElementById('vt-custom-data-content');
+    const metaWrapper = document.getElementById('vt-custom-data-wrapper');
+    metaContainer.innerHTML = '';
+
+    if (typeObj && typeObj.metadata && typeObj.metadata.length > 0) {
+      metaWrapper.classList.remove('hidden');
+      
+      typeObj.metadata.forEach(m => {
+        const val = parsedValues[m.name.trim()] || '';
+        let fieldHtml = `<div class="mb-3"><label class="block text-[11px] font-bold text-indigo-900 mb-1.5">${m.name}</label>`;
+        
+        if (m.type === 'textarea') {
+          fieldHtml += `<textarea class="vt-dynamic-meta-input w-full text-sm font-medium border border-indigo-200 rounded-xl px-4 py-3 bg-white focus:border-indigo-500 focus:outline-none resize-none shadow-sm transition-colors" rows="2" data-label="${m.name}">${val}</textarea>`;
+        } else if (m.type === 'select') {
+          fieldHtml += `<select class="vt-dynamic-meta-input w-full text-sm font-semibold border border-indigo-200 rounded-xl px-4 py-2.5 bg-white focus:border-indigo-500 focus:outline-none shadow-sm modern-select transition-colors cursor-pointer" data-label="${m.name}"><option value="">Select ${m.name}...</option>`;
+          (m.options || []).forEach(opt => {
+            const selected = (opt === val) ? 'selected' : '';
+            fieldHtml += `<option value="${opt}" ${selected}>${opt}</option>`;
+          });
+          fieldHtml += `</select>`;
+        } else if (m.type === 'url') {
+          fieldHtml += `<div class="relative"><div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><svg class="h-4 w-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></div><input type="url" value="${val}" class="vt-dynamic-meta-input w-full text-sm font-medium border border-indigo-200 rounded-xl pl-9 pr-3 py-2.5 bg-white focus:border-indigo-500 focus:outline-none shadow-sm transition-colors" data-label="${m.name}"></div>`;
+        } else {
+          fieldHtml += `<input type="${m.type || 'text'}" value="${val}" class="vt-dynamic-meta-input w-full text-sm font-medium border border-indigo-200 rounded-xl px-4 py-2.5 bg-white focus:border-indigo-500 focus:outline-none shadow-sm transition-colors" data-label="${m.name}">`;
+        }
+        fieldHtml += `</div>`;
+        metaContainer.insertAdjacentHTML('beforeend', fieldHtml);
+      });
+    } else {
+      metaWrapper.classList.add('hidden');
+    }
+
+    const typeSelect = document.getElementById('vt-type');
+    typeSelect.innerHTML = `<option value="${task.taskType}">${task.taskType}</option>`;
+    typeSelect.value = task.taskType;
+
+    const typeConfig = typeObj || {};
+    document.getElementById('vt-tooltip-freq').textContent = `Freq: ${typeConfig.frequency || 'Ad-hoc'}`;
+    document.getElementById('vt-tooltip-desc').textContent = typeConfig.description || 'No description provided.';
+    const toolsContainer = document.getElementById('vt-tooltip-tools');
+    toolsContainer.innerHTML = '';
+    
+    if (typeConfig.tools && typeConfig.tools.length > 0) {
+      typeConfig.tools.forEach(tool => {
+        toolsContainer.innerHTML += `<a href="${tool.startsWith('http') ? tool : '#'}" target="_blank" class="bg-gray-700 hover:bg-gray-600 text-gray-100 px-2 py-1 rounded text-[9px] font-bold transition shadow-sm border border-gray-600 inline-block max-w-full break-all whitespace-normal text-center leading-relaxed">${tool}</a>`;
+      });
+    }
+
+    const userSelect = document.getElementById('vt-assigned');
+    userSelect.innerHTML = '<option value="">Unassigned</option>';
+    if (window.AppConfig.users) {
+      window.AppConfig.users.forEach(user => {
+        const opt = document.createElement('option');
+        opt.value = user.email;
+        opt.textContent = `${user.name} (${user.email.split('@')[0]})`;
+        if (task.assignedTo === user.email) opt.selected = true;
+        userSelect.appendChild(opt);
+      });
+    }
+
+    this.updateStatusDropdown(task.taskType, task.status);
+    this.updateSubTypes(task.subType);
+
+    document.getElementById('vt-loading').classList.add('hidden');
+    document.getElementById('vt-content').classList.remove('hidden');
+  },
+
+  renderActivityFeed(comments) {
+    const list = document.getElementById('vt-activity-list');
+    list.innerHTML = '';
+    let activities = [];
+
+    if (comments && comments.length > 0) {
+      comments.forEach(c => {
+        const isSystem = c.user && c.user.startsWith('System|');
+        let displayUser = c.user ? c.user.split('@')[0] : 'Unknown';
+        if (isSystem) {
+          const parts = c.user.split('|');
+          displayUser = parts[1] ? parts[1].split('@')[0] : 'System';
+        }
+        activities.push({
+          type: isSystem ? 'system' : 'comment',
+          user: displayUser,
+          text: c.message,
+          date: new Date(c.createdAt || new Date())
+        });
+      });
+    }
+
+    activities.sort((a, b) => a.date - b.date);
+
+    if (activities.length === 0) {
+      list.innerHTML = '<div class="text-sm text-gray-400 italic text-center py-4">No activity recorded yet.</div>';
+      return;
+    }
+
+    let previousTime = this.currentTask.createdAt ? new Date(this.currentTask.createdAt).getTime() : null;
+
+    activities.forEach(act => {
+      const actTime = act.date.getTime();
+      let timeSpentStr = '';
+
+      if (previousTime) {
+         const diffMs = actTime - previousTime;
+         const diffHrs = Math.floor(diffMs / 3600000);
+         const diffMins = Math.floor((diffMs % 3600000) / 60000);
+         if (diffHrs > 0) timeSpentStr = `${diffHrs}h ${diffMins}m`;
+         else if (diffMins > 0) timeSpentStr = `${diffMins}m`;
+         else timeSpentStr = `< 1m`;
+      } else {
+         timeSpentStr = `Start`;
+      }
+
+      previousTime = actTime; 
+
+      const div = document.createElement('div');
+      const timeStr = act.date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+      const isAlert = act.text.includes('🚨 **SYSTEM ALERT:**');
+
+      if (act.type === 'system') {
+        div.className = `flex items-start gap-3 text-xs py-2 border-l-2 pl-4 ml-3 my-2 bg-white rounded-r-lg shadow-sm ${isAlert ? 'border-red-400 text-red-600' : 'border-blue-200 text-gray-500'}`;
+        div.innerHTML = `
+          <svg class="w-4 h-4 ${isAlert ? 'text-red-500' : 'text-blue-400'} flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${isAlert ? 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' : 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'}"></path></svg>
+          <div class="flex-1 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+            <div><span class="font-bold ${isAlert ? 'text-red-700' : 'text-gray-700'}">${act.user}</span> <span>${this.linkify(act.text)}</span></div>
+            <div class="flex items-center gap-2">
+              <span class="text-[9px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100 shadow-sm flex items-center gap-1" title="Time elapsed since previous activity">
+                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ${timeSpentStr}
+              </span>
+              <span class="text-[10px] text-gray-400 whitespace-nowrap">${timeStr}</span>
+            </div>
+          </div>
+        `;
+      } else {
+        div.className = `bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-sm my-3 ${isAlert ? 'border-red-200 bg-red-50/30' : ''}`;
+        div.innerHTML = `
+          <div class="flex justify-between items-baseline mb-2">
+            <span class="font-black ${isAlert ? 'text-red-700' : 'text-blue-700'} text-xs">${act.user}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[9px] text-gray-400 font-bold bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100 shadow-sm flex items-center gap-1" title="Time elapsed since previous activity">
+                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ${timeSpentStr}
+              </span>
+              <span class="text-[10px] text-gray-400 font-mono font-medium">${timeStr}</span>
+            </div>
+          </div>
+          <div class="${isAlert ? 'text-red-800' : 'text-gray-700'} whitespace-pre-wrap font-medium">${this.linkify(act.text)}</div>
+        `;
+      }
+      list.appendChild(div);
+    });
+    
+    list.scrollTop = list.scrollHeight;
+  },
+
+  postComment() {
+    const msgInput = document.getElementById('vt-new-comment');
+    const msg = msgInput.value.trim();
+    if (!msg) return;
+
+    const btn = document.getElementById('btn-post-comment');
+    btn.disabled = true;
+    btn.innerHTML = `<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>`;
+
+    const payload = {
+      taskId: this.currentTask.id,
+      message: msg
+    };
+
+    google.script.run
+      .withSuccessHandler(responseJson => {
+        msgInput.value = '';
+        btn.disabled = false;
+        btn.textContent = 'Post Update';
+        this.open(this.currentTask.id);
+      })
+      .withFailureHandler(err => {
+        if (typeof toastError === "function") toastError('Failed to post comment: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = 'Post Update';
+      })
+      .API_addComment(JSON.stringify(payload));
+  },
+
+  updateStatusDropdown(taskType, currentStatus) {
+    const statusSelect = document.getElementById('vt-status');
+    statusSelect.innerHTML = '';
+    
+    const typeObj = window.AppConfig.taskTypes.find(t => t.label === taskType);
+    let allowedStatuses = ['Open', 'In-Progress', 'Completed']; 
+    
+    if (typeObj && typeObj.statuses && typeObj.statuses.length > 0) {
+      allowedStatuses = [...typeObj.statuses]; 
+    }
+
+    if (!allowedStatuses.includes(currentStatus) && currentStatus) allowedStatuses.push(currentStatus);
+    
+    allowedStatuses.forEach(statusOpt => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = statusOpt;
+      if (currentStatus === statusOpt) opt.selected = true;
+      statusSelect.appendChild(opt);
+    });
+  },
+
+  updateSubTypes(currentSubType = null) {
+    const typeSelect = document.getElementById('vt-type');
+    const subTypeSelect = document.getElementById('vt-sub-type');
+    const wrapper = document.getElementById('vt-subtype-wrapper');
+    const selectedType = typeSelect.value;
+    subTypeSelect.innerHTML = ''; 
+    
+    const typeObj = window.AppConfig.taskTypes.find(t => t.label === selectedType);
+    const availableSubTypes = (typeObj && typeObj.subTypes) ? typeObj.subTypes : [];
+
+    if (availableSubTypes.length === 0) {
+      subTypeSelect.innerHTML = '<option value="N/A">N/A</option>';
+      wrapper.classList.add('hidden');
+      return;
+    }
+    
+    wrapper.classList.remove('hidden');
+    availableSubTypes.forEach(sub => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = sub;
+      if (currentSubType === sub) opt.selected = true;
+      subTypeSelect.appendChild(opt);
+    });
+    
+    if(!currentSubType) { 
+      this.updateStatusDropdown(selectedType, this.currentTask.status);
+    }
+  },
+
+  submit(event) {
+    event.preventDefault(); 
+    
+    const currentDesc = this.isEditingDesc 
+      ? document.getElementById('vt-desc').value 
+      : this.editableDescription;
+      
+    const btn = document.getElementById('btn-save-task');
+    btn.disabled = true; 
+    btn.innerHTML = `<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div> Saving...`;
+    
+    let metaObj = {};
+    document.querySelectorAll('.vt-dynamic-meta-input').forEach(input => {
+      if(input.value.trim() !== '') {
+        metaObj[input.dataset.label] = input.value.trim();
+      }
+    });
+    
+    const payload = {
+      id: document.getElementById('vt-id').value,
+      title: document.getElementById('vt-title').value,
+      description: currentDesc.trim(),
+      taskType: document.getElementById('vt-type').value,
+      subType: document.getElementById('vt-sub-type').value,
+      status: document.getElementById('vt-status').value,
+      priority: document.getElementById('vt-priority').value,
+      assignedTo: document.getElementById('vt-assigned').value,
+      deadline: document.getElementById('vt-deadline').value,
+      metadata: JSON.stringify(metaObj) 
+    };
+
+    google.script.run
+      .withSuccessHandler(responseJson => {
+        if (typeof showToast === "function") showToast('Task updated!', 'success');
+        this.close();
+        if (window.Dashboard) window.Dashboard.init();
+        this.resetButton(btn);
+      })
+      .withFailureHandler(err => {
+        if (typeof toastError === "function") toastError('Failed to update task: ' + err.message);
+        this.resetButton(btn);
+      })
+      .API_updateTask(JSON.stringify(payload));
+  },
+
+  deleteTask() {
+    if (!confirm("Are you sure you want to delete this task?")) return;
+    const taskId = document.getElementById('vt-id').value;
+    const btn = document.getElementById('btn-delete-task');
+    btn.disabled = true; 
+    btn.innerHTML = `<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500 mr-2"></div> Deleting...`;
+    
+    google.script.run
+      .withSuccessHandler(responseJson => {
+        if (typeof showToast === "function") showToast('Task deleted.', 'success');
+        
+        // FIX: Reset the button state before closing the modal!
+        btn.disabled = false;
+        btn.textContent = 'Delete Task';
+        
+        this.close();
+        if (window.Dashboard) window.Dashboard.init();
+      })
+      .withFailureHandler(err => {
+        if (typeof toastError === "function") toastError('Failed to delete: ' + err.message);
+        
+        // Reset on failure too
+        btn.disabled = false;
+        btn.textContent = 'Delete Task';
+      })
+      .API_deleteTask(taskId);
+  },
+
+  resetButton(btn) {
+    btn.disabled = false;
+    btn.textContent = 'Save Changes';
+  }
+};
+</script>

@@ -1,0 +1,1500 @@
+<div class="h-full flex flex-col bg-gray-50 overflow-y-auto p-4 md:p-8 relative">
+  
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h2 class="text-2xl font-black text-gray-800">System Settings</h2>
+      <p class="text-sm text-gray-500 mt-1">Manage configuration, schemas, workflows, and users.</p>
+    </div>
+    <div id="global-save-container" class="flex gap-2">
+      <button onclick="window.SettingsPage.init()" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded shadow-sm hover:bg-gray-50 font-bold text-sm transition">Discard</button>
+      <button onclick="window.SettingsPage.saveSettings()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded shadow-sm font-bold text-sm transition flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+        Save Config
+      </button>
+    </div>
+  </div>
+
+  <div class="border-b border-gray-200 mb-6">
+    <nav class="-mb-px flex space-x-8">
+      <a href="#" onclick="window.SettingsPage.switchTab('global')" id="tab-btn-global" class="border-blue-600 text-blue-600 whitespace-nowrap py-3 px-1 border-b-2 font-bold text-sm">Global Config</a>
+      <a href="#" onclick="window.SettingsPage.switchTab('categories')" id="tab-btn-categories" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition">Categories & Workflows</a>
+      <a href="#" onclick="window.SettingsPage.switchTab('users')" id="tab-btn-users" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition">User Management</a>
+    </nav>
+  </div>
+
+  <div id="tab-global" class="tab-content max-w-[1400px]">
+    <div class="flex flex-col gap-6 max-w-4xl relative">
+
+      <div class="bg-white p-5 lg:p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col space-y-6 break-words">
+        <div class="border-b border-gray-100 pb-3">
+          <h3 class="text-base font-black text-gray-800">Core Settings</h3>
+          <p class="text-xs text-gray-500 mt-1">General application properties and SLAs.</p>
+        </div>
+        
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">App Name</label>
+          <input type="text" id="set-app-name" class="w-full text-sm border border-gray-300 rounded-lg px-4 py-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition shadow-sm bg-gray-50 focus:bg-white text-gray-800 font-semibold">
+        </div>
+        
+        <div class="space-y-4 pt-2">
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide">SLA Timers (Hours)</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div>
+              <span class="block text-[10px] font-bold text-red-600 uppercase tracking-wider mb-1 text-center">High</span>
+              <input type="number" id="set-timer-high" class="w-full text-sm border border-gray-300 rounded-lg px-2 py-2.5 focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none shadow-sm text-center bg-gray-50 focus:bg-white font-bold text-gray-800">
+            </div>
+            <div>
+              <span class="block text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-1 text-center">Medium</span>
+              <input type="number" id="set-timer-medium" class="w-full text-sm border border-gray-300 rounded-lg px-2 py-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none shadow-sm text-center bg-gray-50 focus:bg-white font-bold text-gray-800">
+            </div>
+            <div>
+              <span class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 text-center">Low</span>
+              <input type="number" id="set-timer-low" class="w-full text-sm border border-gray-300 rounded-lg px-2 py-2.5 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none shadow-sm text-center bg-gray-50 focus:bg-white font-bold text-gray-800">
+            </div>
+            <div>
+              <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 text-center">None</span>
+              <input type="number" id="set-timer-none" class="w-full text-sm border border-gray-300 rounded-lg px-2 py-2.5 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none shadow-sm text-center bg-gray-50 focus:bg-white font-bold text-gray-800">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 lg:p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col space-y-4 break-words">
+        <div class="border-b border-gray-100 pb-3 mb-2">
+          <h3 class="text-base font-black text-gray-800">Role Access Hierarchy</h3>
+          <p class="text-xs text-gray-500 mt-1">Assign roles from your System Roles list.</p>
+        </div>
+        
+        <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 min-w-0">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-bold text-gray-700">Tier 0</span>
+            <span class="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded uppercase tracking-widest shadow-sm whitespace-nowrap">Full Admin</span>
+          </div>
+          <div id="tier-0-badges" class="flex flex-wrap gap-2 mb-3"></div>
+          <div class="flex gap-2">
+            <select id="tier-0-select" class="flex-1 text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:border-blue-500 focus:outline-none bg-white shadow-sm hierarchy-select"></select>
+            <button onclick="window.SettingsPage.addRoleToTier(0)" class="action-btn px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition shadow-sm">Add</button>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 min-w-0">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-bold text-gray-700">Tier 1</span>
+            <span class="text-[9px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded uppercase tracking-widest shadow-sm whitespace-nowrap">Config Editor</span>
+          </div>
+          <div id="tier-1-badges" class="flex flex-wrap gap-2 mb-3"></div>
+          <div class="flex gap-2">
+            <select id="tier-1-select" class="flex-1 text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:border-blue-500 focus:outline-none bg-white shadow-sm hierarchy-select"></select>
+            <button onclick="window.SettingsPage.addRoleToTier(1)" class="action-btn px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition shadow-sm">Add</button>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 min-w-0">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-bold text-gray-700">Tier 2</span>
+            <span class="text-[9px] font-bold text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded uppercase tracking-widest shadow-sm whitespace-nowrap">View Only</span>
+          </div>
+          <div id="tier-2-badges" class="flex flex-wrap gap-2 mb-3"></div>
+          <div class="flex gap-2">
+            <select id="tier-2-select" class="flex-1 text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:border-blue-500 focus:outline-none bg-white shadow-sm hierarchy-select"></select>
+            <button onclick="window.SettingsPage.addRoleToTier(2)" class="action-btn px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition shadow-sm">Add</button>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 min-w-0">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-bold text-gray-700">Tier 3</span>
+            <span class="text-[9px] font-bold text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded uppercase tracking-widest shadow-sm whitespace-nowrap">Agent / No Access</span>
+          </div>
+          <div id="tier-3-badges" class="flex flex-wrap gap-2 mb-3"></div>
+          <div class="flex gap-2">
+            <select id="tier-3-select" class="flex-1 text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:border-blue-500 focus:outline-none bg-white shadow-sm hierarchy-select"></select>
+            <button onclick="window.SettingsPage.addRoleToTier(3)" class="action-btn px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition shadow-sm">Add</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="bg-white p-5 lg:p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col space-y-6 break-words">
+        <div class="border-b border-gray-100 pb-3 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+          <div>
+            <h3 class="text-base font-black text-gray-800">System Roles</h3>
+            <p class="text-xs text-gray-500 mt-1">Manage the master list of roles.</p>
+          </div>
+        </div>
+        <div class="flex gap-2 w-full">
+            <input type="text" id="new-role-input" placeholder="e.g. Manager" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none shadow-sm min-w-0">
+            <button onclick="window.SettingsPage.addRole()" class="action-btn px-4 py-2 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition shadow-sm whitespace-nowrap">Add Role</button>
+        </div>
+        <div id="roles-container" class="flex flex-wrap gap-2 bg-gray-50 p-4 rounded-xl border border-gray-200 min-h-[100px] content-start">
+        </div>
+      </div>
+
+      <div class="bg-white p-5 lg:p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col space-y-6 break-words">
+        <div class="border-b border-gray-100 pb-3 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+          <div>
+            <h3 class="text-base font-black text-gray-800">System Shift Schedules</h3>
+            <p class="text-xs text-gray-500 mt-1">Define standard operational shifts and their default times.</p>
+          </div>
+          <button onclick="window.SettingsPage.addShift()" class="action-btn px-4 py-2 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition shadow-sm whitespace-nowrap">+ Add Shift</button>
+        </div>
+        <div id="shifts-container" class="flex flex-col gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200 min-h-[100px]">
+        </div>
+      </div>
+
+      <div class="bg-white p-5 lg:p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col space-y-6 break-words">
+        <div class="border-b border-gray-100 pb-3 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+          <div>
+            <h3 class="text-base font-black text-gray-800">System Frequencies</h3>
+            <p class="text-xs text-gray-500 mt-1">Manage the master list of task frequencies.</p>
+          </div>
+        </div>
+        <div class="flex gap-2 w-full">
+            <input type="text" id="new-frequency-input" placeholder="e.g. Bi-Weekly" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none shadow-sm min-w-0">
+            <button onclick="window.SettingsPage.addFrequency()" class="action-btn px-4 py-2 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition shadow-sm whitespace-nowrap">Add</button>
+        </div>
+        <div id="frequencies-container" class="flex flex-wrap gap-2 bg-gray-50 p-4 rounded-xl border border-gray-200 min-h-[100px] content-start">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="tab-categories" class="tab-content hidden pb-20">
+    <div class="max-w-[1400px]">
+      
+      <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 break-words">
+        <div>
+          <h3 class="text-base font-black text-gray-800">Categories, SOPs & Workflows</h3>
+          <p class="text-xs text-gray-500 mt-1">Restrict task categories by role, and define their specific sub-options.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 w-full xl:w-auto items-stretch flex-wrap xl:flex-nowrap">
+          
+          <div class="relative min-w-0 flex-1 sm:flex-none">
+            <select id="category-role-filter" onchange="window.SettingsPage.renderTaskTypes()" class="w-full sm:w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none shadow-sm bg-gray-50 focus:bg-white transition-colors cursor-pointer text-gray-700 font-medium">
+              <option value="">All Roles</option>
+            </select>
+          </div>
+          
+          <div class="relative min-w-0 flex-1 sm:flex-none">
+            <select id="category-priority-filter" onchange="window.SettingsPage.renderTaskTypes()" class="w-full sm:w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none shadow-sm bg-gray-50 focus:bg-white transition-colors cursor-pointer text-gray-700 font-medium">
+              <option value="">All Priorities</option>
+            </select>
+          </div>
+
+          <div class="relative min-w-0 flex-1 sm:flex-none">
+            <select id="category-frequency-filter" onchange="window.SettingsPage.renderTaskTypes()" class="w-full sm:w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none shadow-sm bg-gray-50 focus:bg-white transition-colors cursor-pointer text-gray-700 font-medium">
+              <option value="">All Freqs</option>
+            </select>
+          </div>
+
+          <div class="relative flex-1 sm:min-w-[200px] min-w-0">
+            <svg class="w-4 h-4 absolute left-3 top-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <input type="text" id="category-search-input" onkeyup="window.SettingsPage.renderTaskTypes()" placeholder="Search..." class="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none shadow-sm bg-gray-50 focus:bg-white transition-colors min-w-0">
+          </div>
+
+          <div class="flex gap-2 flex-shrink-0">
+            <button onclick="window.SettingsPage.openBulkCatModal()" class="action-btn px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 text-sm font-bold rounded-lg transition shadow-sm whitespace-nowrap flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+              Bulk Import
+            </button>
+            <button onclick="window.SettingsPage.addTaskType()" class="action-btn px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-800 transition shadow-sm whitespace-nowrap">+ Category</button>
+          </div>
+        </div>
+      </div>
+      
+      <div id="task-types-container" class="space-y-4">
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-users" class="tab-content hidden pb-20">
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden max-w-[1400px] break-words">
+      <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+        <div>
+          <h3 class="text-base font-black text-gray-800">User Management</h3>
+          <p class="text-xs text-gray-500 mt-1">Manage agents, roles, teams, and shift schedules.</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btn-bulk-edit" onclick="window.SettingsPage.openBulkUserModal()" class="action-btn px-4 py-2 bg-orange-100 text-orange-700 border border-orange-200 text-sm font-bold rounded-lg hover:bg-orange-200 transition shadow-sm hidden flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+            Bulk Edit (<span id="bulk-edit-count">0</span>)
+          </button>
+          <button onclick="window.SettingsPage.openUserModal()" class="action-btn px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 transition shadow-sm">+ Add User</button>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-4 text-left w-10">
+                <input type="checkbox" id="selectAllUsers" onchange="window.SettingsPage.toggleAllUsers(this)" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer w-4 h-4">
+              </th>
+              <th class="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-wider">Name</th>
+              <th class="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-wider">Snap Email</th>
+              <th class="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-wider">Role</th>
+              <th class="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-wider">Team</th>
+              <th class="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-wider">Shift</th>
+              <th class="px-6 py-4 text-right text-[10px] font-black text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-table-body" class="bg-white divide-y divide-gray-200">
+            <tr><td colspan="7" class="px-6 py-10 text-center text-sm text-gray-400">Loading users...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="user-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden break-words">
+      <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+        <h3 id="user-modal-title" class="text-lg font-black text-gray-800">Add User</h3>
+        <button onclick="window.SettingsPage.closeUserModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <input type="hidden" id="user-orig-email">
+        <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Name</label><input type="text" id="user-name" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none"></div>
+        <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Snap Email</label><input type="email" id="user-email" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none"></div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Role</label>
+            <select id="user-role" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none bg-white"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Team</label>
+            <input type="text" id="user-team" placeholder="e.g. Alpha, QA" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none">
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Scheduled Shift</label>
+          <select id="user-shift" onchange="window.SettingsPage.handleUserShiftChange('user')" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none bg-white cursor-pointer"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Start Time</label><input type="time" id="user-start" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none"></div>
+          <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">End Time</label><input type="time" id="user-end" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none"></div>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+        <button onclick="window.SettingsPage.closeUserModal()" class="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">Cancel</button>
+        <button onclick="window.SettingsPage.saveUser()" id="btn-save-user" class="action-btn px-6 py-2 text-sm font-bold text-white bg-blue-600 rounded hover:bg-blue-700">Save User</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="bulk-user-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden break-words">
+      <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-orange-50">
+        <h3 class="text-lg font-black text-orange-800">Bulk Update Users</h3>
+        <button onclick="window.SettingsPage.closeBulkUserModal()" class="text-orange-400 hover:text-orange-600">&times;</button>
+      </div>
+      <div class="p-6 space-y-5">
+        <p class="text-sm font-medium text-gray-500">Updating <span id="bulk-modal-count" class="font-black text-gray-800">0</span> selected users. <br><span class="text-xs italic text-gray-400">Leave a field blank to keep current values.</span></p>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Role</label>
+            <select id="bulk-user-role" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none bg-white text-gray-600"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Team</label>
+            <input type="text" id="bulk-user-team" placeholder="(No Change)" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none">
+          </div>
+        </div>
+        
+        <div class="pt-2 border-t border-gray-100">
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Scheduled Shift</label>
+          <select id="bulk-user-shift" onchange="window.SettingsPage.handleUserShiftChange('bulk-user')" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none bg-white cursor-pointer text-gray-600"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Start Time</label><input type="time" id="bulk-user-start" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none text-gray-500"></div>
+          <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">End Time</label><input type="time" id="bulk-user-end" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none text-gray-500"></div>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+        <button onclick="window.SettingsPage.closeBulkUserModal()" class="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">Cancel</button>
+        <button onclick="window.SettingsPage.saveBulkUsers()" id="btn-bulk-save" class="action-btn px-6 py-2 text-sm font-bold text-white bg-orange-600 rounded hover:bg-orange-700">Apply to All</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="meta-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-[60] hidden flex items-center justify-center backdrop-blur-sm">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden break-words">
+      <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+        <h3 class="text-lg font-black text-gray-800">Add Custom Field</h3>
+        <button onclick="window.SettingsPage.closeMetaModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Field Name</label><input type="text" id="meta-name" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none" placeholder="e.g. Account Number"></div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Field Type</label>
+          <select id="meta-type" onchange="window.SettingsPage.toggleMetaOptions()" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none bg-white">
+            <option value="text">Short Text (Input)</option>
+            <option value="textarea">Long Text (Paragraph)</option>
+            <option value="number">Number</option>
+            <option value="email">Email Address</option>
+            <option value="url">URL (Clickable Link)</option>
+            <option value="select">Dropdown (Select)</option>
+          </select>
+        </div>
+        <div id="meta-options-container" class="hidden">
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Dropdown Options</label>
+          <input type="text" id="meta-options" class="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:border-blue-500 focus:outline-none" placeholder="Option 1, Option 2, Option 3">
+          <p class="text-[10px] text-gray-400 mt-1">Separate your options with commas.</p>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+        <button onclick="window.SettingsPage.closeMetaModal()" class="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50">Cancel</button>
+        <button onclick="window.SettingsPage.saveMetadata()" class="action-btn px-6 py-2 text-sm font-bold text-white bg-blue-600 rounded hover:bg-blue-700">Add Field</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="bulk-cat-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-[60] hidden flex items-center justify-center backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden break-words">
+      <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-emerald-50">
+        <h3 class="text-lg font-black text-emerald-800 flex items-center gap-2">
+          <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+          Bulk Import Categories
+        </h3>
+        <button onclick="window.SettingsPage.closeBulkCatModal()" class="text-emerald-400 hover:text-emerald-600">&times;</button>
+      </div>
+      
+      <div class="p-6 space-y-4">
+        <p class="text-sm font-medium text-gray-600">Upload a CSV file to add multiple categories. Supported headers (any order):</p>
+        
+        <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 text-[11px] font-mono text-gray-600 overflow-x-auto whitespace-nowrap">
+          Label, Description, Frequency, Priority, Roles, Subtypes, Statuses, Tools
+        </div>
+        
+        <ul class="text-xs text-gray-500 space-y-1 ml-4 list-disc marker:text-emerald-400">
+          <li><strong class="text-gray-700">Required:</strong> Label</li>
+          <li><strong class="text-gray-700">Arrays (Comma separated):</strong> Roles, Subtypes, Statuses, Tools. Make sure to wrap the entire cell in quotes if it contains commas (e.g. <code class="bg-gray-100 px-1">"QA, SME, TL"</code>)</li>
+        </ul>
+
+        <div class="mt-4">
+          <input type="file" id="cat-csv-upload" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition cursor-pointer border border-gray-200 rounded-lg bg-gray-50">
+        </div>
+      </div>
+      
+      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
+        <button onclick="window.SettingsPage.downloadCatTemplateCSV()" class="px-4 py-2 text-sm font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded hover:bg-emerald-100 transition shadow-sm flex items-center gap-1.5 focus:outline-none">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          Download Template
+        </button>
+
+        <div class="flex gap-3">
+          <button onclick="window.SettingsPage.closeBulkCatModal()" class="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50 transition">Cancel</button>
+          <button onclick="window.SettingsPage.processCatCSV()" class="action-btn px-6 py-2 text-sm font-bold text-white bg-emerald-600 rounded hover:bg-emerald-700 transition">Import Categories</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+window.SettingsPage = {
+  config: null,
+  users: [],
+  selectedUserEmails: new Set(),
+  currentTab: 'global',
+  activeMetaTypeIndex: null,
+  expandedCategories: new Set(),
+
+  getRandomColor() {
+    const colors = ['#EF4444', '#F97316', '#F59E0B', '#84CC16', '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9', '#3B82F6', '#6366F1', '#8B5CF6', '#A855F7', '#D946EF', '#EC4899', '#F43F5E'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  },
+
+  init() {
+    window.showLoader('Loading Settings...');
+
+    if (window.CurrentUser && window.CurrentUser.tier >= 1) {
+      document.getElementById('tab-btn-global').classList.add('hidden');
+      this.switchTab('categories');
+    } else {
+      this.switchTab('global');
+    }
+    
+    google.script.run
+      .withSuccessHandler(res => {
+        try {
+          const response = JSON.parse(res);
+          if (response.success) { 
+            this.config = response.data || {}; 
+            
+            if (!this.config.roleTiers) {
+              this.config.roleTiers = { "0": ["SDL", "Dev"], "1": ["TL", "OM"], "2": ["SME", "QA"], "3": ["Agent"] };
+            }
+            if (!this.config.timers) {
+              this.config.timers = { high: 2, medium: 24, low: 48, none: 0 };
+            } else if (this.config.timers.none === undefined) {
+              this.config.timers.none = 0;
+            }
+            
+            if (!this.config.roles || this.config.roles.length === 0) {
+              this.config.roles = ['Agent', 'TL', 'SME', 'QA', 'SDL', 'Dev', 'OM', 'Ops Lead'];
+            }
+
+            if (!this.config.frequencies || this.config.frequencies.length === 0) {
+              this.config.frequencies = ['Ad-hoc', 'Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'];
+            }
+
+            if (!this.config.shifts || this.config.shifts.length === 0) {
+              this.config.shifts = [
+                { name: 'Mid', start: '14:00', end: '23:00' },
+                { name: 'Night', start: '22:00', end: '07:00' },
+                { name: 'N/a', start: '', end: '' }
+              ];
+            }
+            
+            if (this.config.taskTypes) {
+              this.config.taskTypes.forEach((t, i) => {
+                if (!t.id) t.id = 'cat_id_' + i;
+                if (!t.allowedRoles) t.allowedRoles = [...this.config.roles]; 
+                if (!t.description) t.description = '';
+                if (!t.frequency) t.frequency = 'Ad-hoc';
+                if (!t.defaultPriority) t.defaultPriority = 'Medium';
+                if (!t.tools) t.tools = [];
+              });
+            }
+            
+            this.renderConfigUI(); 
+            this.enforcePermissions();
+          } else {
+            toastError("Failed to load settings from server.");
+          }
+        } catch (error) {
+          console.error("Error building Settings UI:", error);
+          toastError("Error displaying settings data.");
+        } finally {
+          window.hideLoader();
+        }
+      })
+      .withFailureHandler(err => { 
+        toastError(err.message); 
+        window.hideLoader(); 
+      })
+      .API_getAppSettings();
+
+    this.loadUsers();
+  },
+
+  switchTab(tabId) {
+    this.currentTab = tabId;
+    ['global', 'categories', 'users'].forEach(t => {
+      document.getElementById(`tab-${t}`).classList.add('hidden');
+      const btn = document.getElementById(`tab-btn-${t}`);
+      btn.classList.remove('border-blue-600', 'text-blue-600', 'font-bold');
+      btn.classList.add('border-transparent', 'text-gray-500', 'font-medium');
+    });
+    
+    document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+    const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+    activeBtn.classList.remove('border-transparent', 'text-gray-500', 'font-medium');
+    activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-bold');
+
+    document.getElementById('global-save-container').style.display = tabId === 'users' ? 'none' : 'flex';
+    
+    if(this.config) this.enforcePermissions();
+  },
+
+  enforcePermissions() {
+    if (!window.CurrentUser) return;
+    const tier = window.CurrentUser.tier;
+
+    if (tier >= 1 && this.currentTab === 'global') {
+       document.getElementById('global-save-container').classList.add('hidden');
+    } else if (this.currentTab !== 'users') {
+       document.getElementById('global-save-container').classList.remove('hidden');
+       document.getElementById('global-save-container').style.display = 'flex';
+    }
+
+    if (tier >= 2) {
+      document.getElementById('global-save-container').style.display = 'none';
+      document.querySelectorAll('.action-btn').forEach(btn => btn.classList.add('hidden'));
+      document.querySelectorAll('button[title="Delete"]').forEach(btn => btn.classList.add('hidden'));
+      
+      document.querySelectorAll('#tab-categories input, #tab-categories select, #tab-categories textarea, #tab-users input, #tab-users select, #new-role-input, #new-frequency-input, .hierarchy-select, #shifts-container input').forEach(el => {
+        if(el.id === 'category-search-input' || el.id === 'category-role-filter' || el.id === 'category-priority-filter' || el.id === 'category-frequency-filter') return; 
+        el.disabled = true;
+        el.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+      });
+      document.querySelectorAll('#tab-categories button, #shifts-container button').forEach(btn => {
+        if(btn.textContent.includes('×') || btn.textContent.includes('+')) btn.classList.add('hidden');
+      });
+    }
+  },
+
+  renderConfigUI() {
+    document.getElementById('set-app-name').value = this.config.appName || 'Task Manager';
+    document.getElementById('set-timer-high').value = this.config.timers.high || 2;
+    document.getElementById('set-timer-medium').value = this.config.timers.medium || 24;
+    document.getElementById('set-timer-low').value = this.config.timers.low || 48;
+    document.getElementById('set-timer-none').value = this.config.timers.none !== undefined ? this.config.timers.none : 0;
+
+    this.renderRoles();
+    this.renderFrequencies();
+    this.renderShifts(); 
+    this.renderRoleHierarchy();
+    this.renderTaskTypes();
+  },
+
+  renderRoles() {
+    const container = document.getElementById('roles-container');
+    const filterSelect = document.getElementById('category-role-filter');
+    
+    if (filterSelect && this.config.roles) {
+      const currentVal = filterSelect.value;
+      filterSelect.innerHTML = '<option value="">All Roles</option>' + 
+        this.config.roles.map(r => `<option value="${r}">${r}</option>`).join('');
+      if (this.config.roles.includes(currentVal)) {
+        filterSelect.value = currentVal;
+      }
+    }
+
+    if (!this.config.roles || this.config.roles.length === 0) {
+      container.innerHTML = '<span class="text-xs text-gray-400 italic">No roles defined.</span>';
+      return;
+    }
+
+    container.innerHTML = this.config.roles.map((role, idx) => `
+      <span class="inline-flex items-center gap-1 bg-white border border-gray-300 text-gray-800 px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm max-w-full">
+        <span class="flex-1 break-all whitespace-normal text-left min-w-0">${role}</span> 
+        <button onclick="window.SettingsPage.removeRole(${idx})" class="text-gray-400 hover:text-red-500 ml-1 focus:outline-none action-btn transition-colors flex-shrink-0">&times;</button>
+      </span>
+    `).join('');
+
+    this.enforcePermissions(); 
+  },
+
+  addRole() {
+    const input = document.getElementById('new-role-input');
+    const val = input.value.trim();
+    if (!val) return toastError("Role name cannot be empty.");
+    if (!this.config.roles) this.config.roles = [];
+    if (this.config.roles.some(r => r.toLowerCase() === val.toLowerCase())) return toastError("This role already exists.");
+    
+    this.config.roles.push(val);
+    input.value = '';
+    
+    this.renderRoles();
+    this.renderRoleHierarchy(); 
+    this.renderTaskTypes(); 
+  },
+
+  removeRole(idx) {
+    const roleToRemove = this.config.roles[idx];
+    this.config.roles.splice(idx, 1);
+    
+    [0, 1, 2, 3].forEach(tier => {
+      if (this.config.roleTiers[tier]) {
+        this.config.roleTiers[tier] = this.config.roleTiers[tier].filter(r => r !== roleToRemove);
+      }
+    });
+
+    if (this.config.taskTypes) {
+      this.config.taskTypes.forEach(t => {
+        if (t.allowedRoles) t.allowedRoles = t.allowedRoles.filter(r => r !== roleToRemove);
+      });
+    }
+
+    this.renderRoles();
+    this.renderRoleHierarchy();
+    this.renderTaskTypes();
+  },
+
+  renderFrequencies() {
+    const container = document.getElementById('frequencies-container');
+    
+    if (!this.config.frequencies || this.config.frequencies.length === 0) {
+      container.innerHTML = '<span class="text-xs text-gray-400 italic">No frequencies defined.</span>';
+      return;
+    }
+
+    container.innerHTML = this.config.frequencies.map((freq, idx) => `
+      <span class="inline-flex items-center gap-1 bg-white border border-gray-300 text-gray-800 px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm max-w-full">
+        <span class="flex-1 break-all whitespace-normal text-left min-w-0">${freq}</span> 
+        <button onclick="window.SettingsPage.removeFrequency(${idx})" class="text-gray-400 hover:text-red-500 ml-1 focus:outline-none action-btn transition-colors flex-shrink-0">&times;</button>
+      </span>
+    `).join('');
+
+    this.enforcePermissions();
+  },
+
+  addFrequency() {
+    const input = document.getElementById('new-frequency-input');
+    const val = input.value.trim();
+    if (!val) return toastError("Frequency cannot be empty.");
+    if (!this.config.frequencies) this.config.frequencies = [];
+    
+    if (this.config.frequencies.some(f => f.toLowerCase() === val.toLowerCase())) return toastError("This frequency already exists.");
+    
+    this.config.frequencies.push(val);
+    input.value = '';
+    
+    this.renderFrequencies();
+    this.renderTaskTypes(); 
+  },
+
+  removeFrequency(idx) {
+    this.config.frequencies.splice(idx, 1);
+    this.renderFrequencies();
+    this.renderTaskTypes();
+  },
+
+  renderShifts() {
+    const container = document.getElementById('shifts-container');
+    if (!this.config.shifts || this.config.shifts.length === 0) {
+      container.innerHTML = '<span class="text-xs text-gray-400 italic">No shift schedules defined.</span>';
+      return;
+    }
+    
+    container.innerHTML = this.config.shifts.map((shift, idx) => `
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+        <div class="flex-1 w-full sm:w-auto">
+          <label class="block text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Shift Name</label>
+          <input type="text" value="${shift.name}" onchange="window.SettingsPage.updateShift(${idx}, 'name', this.value)" class="w-full text-sm font-bold text-gray-800 border border-transparent hover:border-gray-300 focus:border-blue-500 focus:bg-white bg-gray-50 px-2 py-1 rounded transition-colors outline-none">
+        </div>
+        <div class="w-full sm:w-32">
+          <label class="block text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Start Time</label>
+          <input type="time" value="${shift.start}" onchange="window.SettingsPage.updateShift(${idx}, 'start', this.value)" class="w-full text-sm border border-transparent hover:border-gray-300 focus:border-blue-500 focus:bg-white bg-gray-50 px-2 py-1 rounded transition-colors outline-none">
+        </div>
+        <div class="w-full sm:w-32">
+          <label class="block text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">End Time</label>
+          <input type="time" value="${shift.end}" onchange="window.SettingsPage.updateShift(${idx}, 'end', this.value)" class="w-full text-sm border border-transparent hover:border-gray-300 focus:border-blue-500 focus:bg-white bg-gray-50 px-2 py-1 rounded transition-colors outline-none">
+        </div>
+        <div class="flex items-end h-full pb-1 pl-0 sm:pl-2 border-l-0 sm:border-l border-gray-100 self-end sm:self-auto">
+          <button onclick="window.SettingsPage.removeShift(${idx})" class="text-gray-400 hover:text-red-500 focus:outline-none transition-colors action-btn p-1" title="Delete Shift">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    this.enforcePermissions();
+  },
+
+  addShift() {
+    if (!this.config.shifts) this.config.shifts = [];
+    this.config.shifts.push({ name: 'New Shift', start: '09:00', end: '17:00' });
+    this.renderShifts();
+  },
+
+  removeShift(idx) {
+    if(confirm('Delete this Shift Schedule?')) {
+      this.config.shifts.splice(idx, 1);
+      this.renderShifts();
+    }
+  },
+
+  updateShift(idx, field, value) {
+    this.config.shifts[idx][field] = value;
+  },
+
+  renderRoleHierarchy() {
+    const allAssigned = Object.values(this.config.roleTiers).flat();
+    const availableRoles = (this.config.roles || []).filter(r => !allAssigned.includes(r));
+
+    [0, 1, 2, 3].forEach(tier => {
+      const badgeContainer = document.getElementById(`tier-${tier}-badges`);
+      const rolesInTier = this.config.roleTiers[tier] || [];
+      
+      if (rolesInTier.length === 0) {
+        badgeContainer.innerHTML = '<span class="text-[10px] text-gray-400 italic py-1">No roles assigned</span>';
+      } else {
+        badgeContainer.innerHTML = rolesInTier.map((role, idx) => `
+          <span class="inline-flex items-center gap-1 bg-white border border-gray-300 text-gray-800 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-sm max-w-full">
+            <span class="flex-1 break-all whitespace-normal text-left min-w-0">${role}</span> 
+            <button onclick="window.SettingsPage.removeRoleFromTier(${tier}, ${idx})" class="text-gray-400 hover:text-red-500 ml-1 focus:outline-none action-btn transition-colors flex-shrink-0">&times;</button>
+          </span>
+        `).join('');
+      }
+
+      const select = document.getElementById(`tier-${tier}-select`);
+      select.innerHTML = '<option value="">-- Select Role --</option>';
+      availableRoles.forEach(r => {
+        select.innerHTML += `<option value="${r}">${r}</option>`;
+      });
+    });
+
+    this.enforcePermissions();
+  },
+
+  addRoleToTier(tier) {
+    const select = document.getElementById(`tier-${tier}-select`);
+    const val = select.value;
+    if (!val) return toastError('Please select a role from the dropdown.');
+    if (!this.config.roleTiers[tier]) this.config.roleTiers[tier] = [];
+    this.config.roleTiers[tier].push(val);
+    this.renderRoleHierarchy();
+  },
+
+  removeRoleFromTier(tier, idx) {
+    this.config.roleTiers[tier].splice(idx, 1);
+    this.renderRoleHierarchy();
+  },
+
+  toggleCategory(id) {
+    if (this.expandedCategories.has(id)) {
+      this.expandedCategories.delete(id);
+    } else {
+      this.expandedCategories.add(id);
+    }
+    this.renderTaskTypes();
+  },
+
+  renderTaskTypes() {
+    const container = document.getElementById('task-types-container');
+    container.innerHTML = '';
+    
+    const searchQuery = document.getElementById('category-search-input')?.value.toLowerCase() || '';
+    const roleFilter = document.getElementById('category-role-filter')?.value || '';
+    const priorityFilter = document.getElementById('category-priority-filter')?.value || '';
+    const frequencyFilter = document.getElementById('category-frequency-filter')?.value || '';
+
+    const prioFilterEl = document.getElementById('category-priority-filter');
+    if (prioFilterEl) {
+      let keys = Object.keys(this.config.timers || {});
+      if (!keys.includes('none')) keys.push('none');
+      const order = ['high', 'medium', 'low', 'none'];
+      keys.sort((a,b) => order.indexOf(a.toLowerCase()) - order.indexOf(b.toLowerCase()));
+      prioFilterEl.innerHTML = '<option value="">All Priorities</option>' + keys.map(k => {
+         let cap = k.charAt(0).toUpperCase() + k.slice(1);
+         return `<option value="${cap}">${cap}</option>`;
+      }).join('');
+      prioFilterEl.value = priorityFilter; 
+    }
+
+    const freqFilterEl = document.getElementById('category-frequency-filter');
+    if (freqFilterEl && this.config.frequencies) {
+      freqFilterEl.innerHTML = '<option value="">All Frequencies</option>' + this.config.frequencies.map(f => `<option value="${f}">${f}</option>`).join('');
+      freqFilterEl.value = frequencyFilter; 
+    }
+
+    if (!this.config.taskTypes || this.config.taskTypes.length === 0) {
+      container.innerHTML = '<div class="bg-white p-10 rounded-2xl border border-gray-200 text-center text-sm text-gray-400 shadow-sm break-words">No categories defined. Click "+ Category" or "Bulk Import" to begin.</div>';
+      return;
+    }
+
+    const systemRoles = this.config.roles || [];
+    let visibleCount = 0;
+
+    this.config.taskTypes.forEach((type, index) => {
+      
+      if (searchQuery && !type.label.toLowerCase().includes(searchQuery)) return;
+      if (roleFilter && (!type.allowedRoles || !type.allowedRoles.includes(roleFilter))) return;
+      if (priorityFilter && type.defaultPriority !== priorityFilter) return;
+      if (frequencyFilter && type.frequency !== frequencyFilter) return;
+      
+      visibleCount++;
+      const isExpanded = this.expandedCategories.has(type.id);
+
+      const allowedRoles = type.allowedRoles || [];
+      const unassignedRoles = systemRoles.filter(r => !allowedRoles.includes(r));
+      
+      const rolesHTML = allowedRoles.length === 0
+        ? '<span class="text-[10px] text-gray-400 italic">No roles allowed (Hidden)</span>'
+        : allowedRoles.map((r, rIdx) => `
+          <span class="inline-flex items-center gap-1 bg-orange-50 border border-orange-200 text-orange-800 px-2 py-1 rounded text-[10px] font-bold shadow-sm uppercase tracking-wider max-w-full">
+            <span class="flex-1 break-all whitespace-normal text-left min-w-0">${r}</span> 
+            <button onclick="window.SettingsPage.removeRoleFromCategory(${index}, ${rIdx})" class="text-orange-400 hover:text-red-600 action-btn focus:outline-none ml-0.5 flex-shrink-0">&times;</button>
+          </span>
+        `).join('');
+
+      const roleSelectOptions = '<option value="">-- Add Role --</option>' + unassignedRoles.map(r => `<option value="${r}">${r}</option>`).join('');
+
+      const fallbackStatuses = ['Open', 'In-Progress', 'Completed'];
+      const statusesArray = (type.statuses && type.statuses.length > 0) ? type.statuses : fallbackStatuses;
+      const statusesHTML = statusesArray.map((st, stIdx) => `
+        <span class="inline-flex items-center gap-1 bg-indigo-50 border border-indigo-200 text-indigo-700 px-2 py-1 rounded-md text-[10px] font-bold shadow-sm uppercase tracking-wider max-w-full">
+          <span class="flex-1 break-all whitespace-normal text-left min-w-0">${st}</span> 
+          <button onclick="window.SettingsPage.removeStatus(${index}, ${stIdx})" class="text-indigo-400 hover:text-red-600 action-btn focus:outline-none ml-1 flex-shrink-0">&times;</button>
+        </span>`).join('') || '<span class="text-xs text-gray-400 italic">No statuses</span>';
+
+      const subTypesHTML = (type.subTypes || []).map((sub, subIdx) => `
+        <span class="inline-flex items-center gap-1 bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded-full text-[11px] font-medium shadow-sm max-w-full">
+          <span class="flex-1 break-all whitespace-normal text-left min-w-0">${sub}</span> 
+          <button onclick="window.SettingsPage.removeSubType(${index}, ${subIdx})" class="text-gray-400 hover:text-red-500 action-btn focus:outline-none ml-1 flex-shrink-0">&times;</button>
+        </span>`).join('') || '<span class="text-xs text-gray-400 italic">No subtypes</span>';
+
+      const toolsHTML = (type.tools || []).map((tool, tIdx) => `
+        <span class="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-800 px-2 py-1 rounded text-[10px] font-bold shadow-sm max-w-full">
+          <span class="flex-1 break-all whitespace-normal text-left min-w-0">${tool}</span> 
+          <button onclick="window.SettingsPage.removeTool(${index}, ${tIdx})" class="text-emerald-400 hover:text-red-600 action-btn focus:outline-none ml-0.5 flex-shrink-0">&times;</button>
+        </span>
+      `).join('') || '<span class="text-[10px] text-gray-400 italic">No tools added</span>';
+
+      const metaHTML = (type.metadata || []).map((m, metaIdx) => {
+        let typeLabel = m.type === 'select' ? `Dropdown (${m.options?.length || 0})` : m.type;
+        return `
+        <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-900 border border-blue-200 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm max-w-full">
+          <span class="flex-1 break-all whitespace-normal text-left min-w-0">${m.name} <span class="text-blue-500 font-medium lowercase">(${typeLabel})</span></span>
+          <button onclick="window.SettingsPage.removeMetadata(${index}, ${metaIdx})" class="text-blue-400 hover:text-red-600 ml-1 action-btn focus:outline-none flex-shrink-0">&times;</button>
+        </span>`;
+      }).join('') || '<span class="text-[10px] text-gray-400 italic">No custom fields</span>';
+
+      let freqOptionsHTML = (this.config.frequencies || []).map(f => `<option value="${f}" ${type.frequency===f?'selected':''}>${f}</option>`).join('');
+      if (type.frequency && !(this.config.frequencies || []).includes(type.frequency)) {
+         freqOptionsHTML += `<option value="${type.frequency}" selected>${type.frequency}</option>`; 
+      }
+
+      let timerKeys = Object.keys(this.config.timers || {});
+      if (!timerKeys.includes('none')) timerKeys.push('none');
+      const order = ['high', 'medium', 'low', 'none'];
+      timerKeys.sort((a,b) => order.indexOf(a.toLowerCase()) - order.indexOf(b.toLowerCase()));
+      
+      const prioOptionsHTML = timerKeys.map(k => {
+         let cap = k.charAt(0).toUpperCase() + k.slice(1);
+         return `<option value="${cap}" ${type.defaultPriority===cap?'selected':''}>${cap}</option>`;
+      }).join('');
+
+      const el = document.createElement('div');
+      el.className = 'bg-white p-5 md:p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col relative transition-all break-words';
+      
+      el.innerHTML = `
+        <div class="flex justify-between items-center gap-4 ${isExpanded ? 'border-b border-gray-100 pb-5 mb-5' : ''}">
+          
+          <div class="flex items-center gap-3 flex-1 cursor-pointer group min-w-0" onclick="window.SettingsPage.toggleCategory('${type.id}')">
+            <div class="p-1 rounded-md bg-gray-50 group-hover:bg-gray-100 transition-colors flex-shrink-0">
+              <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+            
+            <input type="color" value="${type.color || '#E5E7EB'}" onclick="event.stopPropagation()" onchange="window.SettingsPage.updateTypeColor(${index}, this.value)" class="w-10 h-10 rounded-lg cursor-pointer border border-gray-300 p-0.5 bg-gray-50 flex-shrink-0 transition-opacity ${isExpanded ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'}">
+            
+            <input type="text" value="${type.label}" onclick="event.stopPropagation()" onchange="window.SettingsPage.updateTypeLabel(${index}, this.value)" class="flex-1 min-w-0 max-w-sm text-base md:text-lg font-black text-gray-900 border border-transparent hover:border-gray-300 rounded-lg px-3 py-1.5 focus:border-blue-500 focus:outline-none focus:bg-white transition-colors" placeholder="Category Name">
+            
+            ${!isExpanded ? `
+              <div class="hidden md:flex items-center gap-2 ml-4 opacity-60 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                <span class="text-[10px] bg-gray-100 px-2 py-1 rounded font-bold text-gray-500 uppercase tracking-widest">${(type.subTypes||[]).length} Subtypes</span>
+                <span class="text-[10px] bg-gray-100 px-2 py-1 rounded font-bold text-gray-500 uppercase tracking-widest">${(type.allowedRoles||[]).length} Roles</span>
+                <span class="text-[10px] bg-gray-100 px-2 py-1 rounded font-bold text-gray-500 uppercase tracking-widest">${(type.statuses||[]).length} Statuses</span>
+              </div>
+            ` : ''}
+          </div>
+
+          <button onclick="event.stopPropagation(); window.SettingsPage.deleteTaskType(${index})" class="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition action-btn flex-shrink-0" title="Delete Category">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </div>
+
+        <div class="${isExpanded ? 'flex' : 'hidden'} flex-col gap-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col gap-4 min-w-0">
+              <div>
+                <h4 class="text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-widest">Main Description</h4>
+                <textarea onchange="window.SettingsPage.updateTypeDescription(${index}, this.value)" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none bg-white shadow-sm resize-none" rows="3" placeholder="What is this category used for?">${type.description || ''}</textarea>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <h4 class="text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-widest">Frequency</h4>
+                  <select onchange="window.SettingsPage.updateTypeFrequency(${index}, this.value)" class="w-full text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:border-blue-500 focus:outline-none bg-white shadow-sm hierarchy-select">
+                    ${freqOptionsHTML}
+                  </select>
+                </div>
+                <div>
+                  <h4 class="text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-widest">Def. Priority</h4>
+                  <select onchange="window.SettingsPage.updateTypePriority(${index}, this.value)" class="w-full text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:border-blue-500 focus:outline-none bg-white shadow-sm hierarchy-select">
+                    ${prioOptionsHTML}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-4 min-w-0">
+              <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col flex-1 min-w-0">
+                <h4 class="text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-widest">Allowed Roles</h4>
+                <div class="flex flex-wrap gap-2 mb-4 flex-1 content-start min-w-0">${rolesHTML}</div>
+                <div class="flex gap-2 mt-auto">
+                  <select id="cat-role-select-${index}" class="flex-1 text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:border-blue-500 focus:outline-none bg-white shadow-sm hierarchy-select min-w-0">${roleSelectOptions}</select>
+                  <button onclick="window.SettingsPage.addRoleToCategory(${index})" class="action-btn px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition shadow-sm">Add</button>
+                </div>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col flex-1 min-w-0">
+                <h4 class="text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-widest">Subtypes</h4>
+                <div class="flex flex-wrap gap-2 mb-4 flex-1 content-start min-w-0">${subTypesHTML}</div>
+                <div class="flex gap-2 mt-auto">
+                  <input type="text" id="cat-subtype-input-${index}" class="flex-1 text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:border-blue-500 focus:outline-none bg-white shadow-sm min-w-0" placeholder="New subtype...">
+                  <button onclick="window.SettingsPage.addSubTypeInline(${index})" class="action-btn px-3 py-1.5 bg-gray-800 text-white text-xs font-bold rounded-lg hover:bg-gray-700 transition shadow-sm">Add</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-4 min-w-0">
+              <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col flex-1 min-w-0">
+                <h4 class="text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-widest">Workflow Statuses</h4>
+                <div class="flex flex-wrap gap-2 mb-4 flex-1 content-start min-w-0">${statusesHTML}</div>
+                <div class="flex gap-2 mt-auto">
+                  <input type="text" id="cat-status-input-${index}" class="flex-1 text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:border-blue-500 focus:outline-none bg-white shadow-sm min-w-0" placeholder="New status...">
+                  <button onclick="window.SettingsPage.addStatusInline(${index})" class="action-btn px-3 py-1.5 bg-gray-800 text-white text-xs font-bold rounded-lg hover:bg-gray-700 transition shadow-sm">Add</button>
+                </div>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col flex-1 min-w-0">
+                <h4 class="text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-widest">Tools / Links</h4>
+                <div class="flex flex-wrap gap-2 mb-4 flex-1 content-start min-w-0">${toolsHTML}</div>
+                <div class="flex gap-2 mt-auto">
+                  <input type="text" id="cat-tool-input-${index}" class="flex-1 text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:border-blue-500 focus:outline-none bg-white shadow-sm min-w-0" placeholder="e.g. SOP Doc">
+                  <button onclick="window.SettingsPage.addToolInline(${index})" class="action-btn px-3 py-1.5 bg-gray-800 text-white text-xs font-bold rounded-lg hover:bg-gray-700 transition shadow-sm">Add</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 min-w-0">
+            <div class="flex justify-between items-center mb-3">
+              <h4 class="text-[10px] font-bold text-blue-800 uppercase tracking-widest">Custom Form Fields</h4>
+              <button onclick="window.SettingsPage.openMetaModal(${index})" class="text-[10px] font-bold text-blue-700 bg-white px-3 py-1.5 rounded border border-blue-200 shadow-sm hover:bg-blue-50 action-btn transition">+ Add Field</button>
+            </div>
+            <div class="flex flex-wrap gap-2 min-w-0">${metaHTML}</div>
+          </div>
+        </div>
+      `;
+      container.appendChild(el);
+    });
+    
+    if (visibleCount === 0) {
+      container.innerHTML = '<div class="bg-white p-10 rounded-2xl border border-gray-200 text-center text-sm text-gray-400 shadow-sm break-words">No categories match your filters.</div>';
+    }
+
+    this.enforcePermissions();
+  },
+
+  updateTypeDescription(idx, val) { this.config.taskTypes[idx].description = val; },
+  updateTypeFrequency(idx, val) { this.config.taskTypes[idx].frequency = val; },
+  updateTypePriority(idx, val) { this.config.taskTypes[idx].defaultPriority = val; },
+  
+  addToolInline(idx) {
+    const val = document.getElementById(`cat-tool-input-${idx}`).value.trim();
+    if (!val) return toastError("Tool or Link cannot be empty.");
+    if (!this.config.taskTypes[idx].tools) this.config.taskTypes[idx].tools = [];
+    this.config.taskTypes[idx].tools.push(val);
+    this.renderTaskTypes();
+  },
+  removeTool(idx, tIdx) {
+    this.config.taskTypes[idx].tools.splice(tIdx, 1);
+    this.renderTaskTypes();
+  },
+
+  addTaskType() { 
+    const newId = Date.now().toString();
+    this.expandedCategories.add(newId); 
+
+    let defaultFreq = 'Ad-hoc';
+    if (this.config.frequencies && this.config.frequencies.length > 0) {
+      defaultFreq = this.config.frequencies[0];
+    }
+
+    let defaultPrio = 'Medium';
+    if (this.config.timers) {
+      const keys = Object.keys(this.config.timers).map(k => k.charAt(0).toUpperCase() + k.slice(1));
+      if (keys.length > 0 && !keys.includes('Medium')) {
+        defaultPrio = keys[0];
+      }
+    }
+
+    this.config.taskTypes.unshift({ 
+      id: newId, 
+      label: 'New Category', 
+      color: this.getRandomColor(), // NEW: Uses random modern color
+      description: '',
+      frequency: defaultFreq,
+      defaultPriority: defaultPrio,
+      tools: [],
+      subTypes: [], 
+      statuses: ['Open', 'In-Progress', 'Completed'], 
+      allowedRoles: [...(this.config.roles || [])],
+      metadata: [] 
+    }); 
+
+    const searchBox = document.getElementById('category-search-input');
+    if (searchBox) searchBox.value = '';
+    const roleFilter = document.getElementById('category-role-filter');
+    if (roleFilter) roleFilter.value = '';
+    const prioFilter = document.getElementById('category-priority-filter');
+    if (prioFilter) prioFilter.value = '';
+    const freqFilter = document.getElementById('category-frequency-filter');
+    if (freqFilter) freqFilter.value = '';
+
+    this.renderTaskTypes(); 
+  },
+  deleteTaskType(idx) { if(confirm('Delete this Category?')) { this.config.taskTypes.splice(idx, 1); this.renderTaskTypes(); } },
+  updateTypeLabel(idx, val) { this.config.taskTypes[idx].label = val; },
+  updateTypeColor(idx, val) { this.config.taskTypes[idx].color = val; },
+
+  addRoleToCategory(idx) {
+    const val = document.getElementById(`cat-role-select-${idx}`).value;
+    if (!val) return toastError("Please select a role.");
+    if (!this.config.taskTypes[idx].allowedRoles) this.config.taskTypes[idx].allowedRoles = [];
+    this.config.taskTypes[idx].allowedRoles.push(val);
+    this.renderTaskTypes();
+  },
+  removeRoleFromCategory(idx, rIdx) {
+    this.config.taskTypes[idx].allowedRoles.splice(rIdx, 1);
+    this.renderTaskTypes();
+  },
+
+  addStatusInline(idx) {
+    const val = document.getElementById(`cat-status-input-${idx}`).value.trim();
+    if (!val) return toastError("Status cannot be empty.");
+    if (!this.config.taskTypes[idx].statuses) this.config.taskTypes[idx].statuses = [];
+    this.config.taskTypes[idx].statuses.push(val);
+    this.renderTaskTypes();
+  },
+  removeStatus(idx, stIdx) { this.config.taskTypes[idx].statuses.splice(stIdx, 1); this.renderTaskTypes(); },
+
+  addSubTypeInline(idx) {
+    const val = document.getElementById(`cat-subtype-input-${idx}`).value.trim();
+    if (!val) return toastError("Subtype cannot be empty.");
+    if (!this.config.taskTypes[idx].subTypes) this.config.taskTypes[idx].subTypes = [];
+    this.config.taskTypes[idx].subTypes.push(val);
+    this.renderTaskTypes();
+  },
+  removeSubType(idx, subIdx) { this.config.taskTypes[idx].subTypes.splice(subIdx, 1); this.renderTaskTypes(); },
+
+  openMetaModal(categoryIndex) {
+    this.activeMetaTypeIndex = categoryIndex;
+    document.getElementById('meta-name').value = '';
+    document.getElementById('meta-type').value = 'text';
+    document.getElementById('meta-options').value = '';
+    this.toggleMetaOptions();
+    document.getElementById('meta-modal').classList.remove('hidden');
+  },
+  closeMetaModal() { document.getElementById('meta-modal').classList.add('hidden'); this.activeMetaTypeIndex = null; },
+  toggleMetaOptions() {
+    const type = document.getElementById('meta-type').value;
+    const optContainer = document.getElementById('meta-options-container');
+    type === 'select' ? optContainer.classList.remove('hidden') : optContainer.classList.add('hidden');
+  },
+  saveMetadata() {
+    const name = document.getElementById('meta-name').value.trim();
+    const type = document.getElementById('meta-type').value;
+    const opts = document.getElementById('meta-options').value;
+    if (!name) return toastError('Field Name is required.');
+    let optionsArray = [];
+    if (type === 'select') {
+      optionsArray = opts.split(',').map(o => o.trim()).filter(o => o !== '');
+      if (optionsArray.length === 0) return toastError('Provide at least one option for the dropdown.');
+    }
+    if (!this.config.taskTypes[this.activeMetaTypeIndex].metadata) this.config.taskTypes[this.activeMetaTypeIndex].metadata = [];
+    this.config.taskTypes[this.activeMetaTypeIndex].metadata.push({ name: name, type: type, options: optionsArray });
+    this.renderTaskTypes(); this.closeMetaModal();
+  },
+  removeMetadata(idx, metaIdx) { this.config.taskTypes[idx].metadata.splice(metaIdx, 1); this.renderTaskTypes(); },
+
+  saveSettings() {
+    this.config = this.config || {}; 
+    
+    this.config.appName = document.getElementById('set-app-name').value;
+    this.config.timers = {
+      high: parseInt(document.getElementById('set-timer-high').value) || 2,
+      medium: parseInt(document.getElementById('set-timer-medium').value) || 24,
+      low: parseInt(document.getElementById('set-timer-low').value) || 48,
+      none: parseInt(document.getElementById('set-timer-none').value) || 0
+    };
+
+    window.showLoader('Saving Configuration...');
+
+    google.script.run
+      .withSuccessHandler(res => {
+        showToast("Config saved successfully.", "success");
+        const sidebarName = document.querySelector('#app-sidebar .hidden.md\\:inline');
+        if (sidebarName) sidebarName.textContent = this.config.appName;
+        document.title = this.config.appName;
+        
+        if (window.AppConfig) {
+          const preservedUsers = window.AppConfig.users; 
+          window.AppConfig = this.config; 
+          window.AppConfig.users = preservedUsers; 
+        }
+        
+        if (window.Dashboard) {
+            window.Dashboard.populateDrawerSelects();
+            // window.Dashboard.populateBulkStatuses(); <-- REMOVED
+            window.Dashboard.renderBoard();
+        }
+        
+        window.hideLoader();
+      })
+      .withFailureHandler(err => { toastError(err.message); window.hideLoader(); })
+      .API_saveAppSettings(JSON.stringify(this.config));
+  },
+
+  // -----------------------------------------
+  // USER MANAGEMENT & BULK ACTIONS LOGIC
+  // -----------------------------------------
+  loadUsers() {
+    google.script.run
+      .withSuccessHandler(res => {
+        const response = JSON.parse(res);
+        if (response.success) { 
+          this.users = response.data; 
+          this.renderUsers(); 
+        }
+      })
+      .API_getUsersAdmin();
+  },
+
+  renderUsers() {
+    const tbody = document.getElementById('users-table-body');
+    const selectAllBox = document.getElementById('selectAllUsers');
+    
+    if (this.users.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-6 text-center text-sm text-gray-500">No users found.</td></tr>';
+      if(selectAllBox) selectAllBox.checked = false;
+      return;
+    }
+    
+    const allEmails = this.users.map(u => u['Snap Emails']);
+    const allSelected = allEmails.length > 0 && allEmails.every(e => this.selectedUserEmails.has(e));
+    if (selectAllBox) selectAllBox.checked = allSelected;
+    
+    tbody.innerHTML = this.users.map((u, index) => {
+      const email = u['Snap Emails'];
+      const isChecked = this.selectedUserEmails.has(email);
+      return `
+      <tr class="hover:bg-gray-50 transition ${isChecked ? 'bg-blue-50/50' : ''}">
+        <td class="px-6 py-4 w-10">
+          <input type="checkbox" value="${email}" onchange="window.SettingsPage.toggleUserSelection('${email}', this.checked)" ${isChecked ? 'checked' : ''} class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer w-4 h-4">
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${u['Names']}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${email}</td>
+        <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${u['Role']==='Agent'?'bg-gray-100 text-gray-800':'bg-blue-100 text-blue-800'}">${u['Role']}</span></td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-bold">${u['Team'] || '--'}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${u['Scheduled Shift'] || '-'} <br><span class="text-[10px] text-gray-400">${u['Start Shift Time']} - ${u['End Shift Time']}</span></td>
+        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+          <button onclick="window.SettingsPage.openUserModalByIndex(${index})" class="text-blue-600 hover:text-blue-900 mr-3 ${window.CurrentUser.tier >= 2 ? 'hidden' : ''}">Edit</button>
+          <button onclick="window.SettingsPage.deleteUserByIndex(${index})" class="text-red-600 hover:text-red-900 ${window.CurrentUser.tier >= 2 ? 'hidden' : ''} action-btn">Delete</button>
+        </td>
+      </tr>
+    `}).join('');
+    
+    this.updateBulkActionButton();
+  },
+
+  toggleUserSelection(email, isChecked) {
+    if (isChecked) this.selectedUserEmails.add(email);
+    else this.selectedUserEmails.delete(email);
+    this.updateBulkActionButton();
+    this.renderUsers(); 
+  },
+  
+  toggleAllUsers(checkbox) {
+    if (checkbox.checked) {
+      this.users.forEach(u => this.selectedUserEmails.add(u['Snap Emails']));
+    } else {
+      this.selectedUserEmails.clear();
+    }
+    this.renderUsers();
+  },
+
+  updateBulkActionButton() {
+    const btn = document.getElementById('btn-bulk-edit');
+    const countSpan = document.getElementById('bulk-edit-count');
+    if (!btn) return;
+    
+    if (this.selectedUserEmails.size > 0 && window.CurrentUser.tier < 2) {
+      btn.classList.remove('hidden');
+      countSpan.textContent = this.selectedUserEmails.size;
+    } else {
+      btn.classList.add('hidden');
+    }
+  },
+
+  handleUserShiftChange(prefix) {
+    const shiftSelect = document.getElementById(`${prefix}-shift`).value;
+    const startInput = document.getElementById(`${prefix}-start`);
+    const endInput = document.getElementById(`${prefix}-end`);
+    
+    if (!shiftSelect || shiftSelect === "") {
+      startInput.value = '';
+      endInput.value = '';
+      return;
+    }
+    
+    if (!this.config.shifts) return;
+    
+    const shiftObj = this.config.shifts.find(s => s.name === shiftSelect);
+    if (shiftObj) {
+      startInput.value = shiftObj.start || '';
+      endInput.value = shiftObj.end || '';
+    }
+  },
+
+  openUserModalByIndex(index) { this.openUserModal(this.users[index]); },
+  
+  openUserModal(user = null) {
+    if (window.CurrentUser.tier >= 2) return; 
+
+    const roleSelect = document.getElementById('user-role');
+    roleSelect.innerHTML = '';
+    const allRoles = (this.config && this.config.roles && this.config.roles.length > 0) ? this.config.roles : ['Agent', 'TL', 'SME', 'QA']; 
+    allRoles.forEach(r => { roleSelect.innerHTML += `<option value="${r}">${r}</option>`; });
+
+    const shiftSelect = document.getElementById('user-shift');
+    shiftSelect.innerHTML = '<option value="">-- Custom / No Shift --</option>';
+    if (this.config && this.config.shifts) {
+      this.config.shifts.forEach(s => { shiftSelect.innerHTML += `<option value="${s.name}">${s.name}</option>`; });
+    }
+
+    document.getElementById('user-modal-title').textContent = user ? 'Edit User' : 'Add New User';
+    document.getElementById('user-orig-email').value = user ? user['Snap Emails'] : '';
+    document.getElementById('user-name').value = user ? user['Names'] : '';
+    document.getElementById('user-email').value = user ? user['Snap Emails'] : '';
+    
+    document.getElementById('user-role').value = user ? user['Role'] : allRoles[0];
+    document.getElementById('user-team').value = user ? (user['Team'] || '') : '';
+    
+    document.getElementById('user-shift').value = user ? (user['Scheduled Shift'] || '') : '';
+    document.getElementById('user-start').value = user ? (user['Start Shift Time'] || '') : '';
+    document.getElementById('user-end').value = user ? (user['End Shift Time'] || '') : '';
+    document.getElementById('user-modal').classList.remove('hidden');
+  },
+  
+  closeUserModal() { document.getElementById('user-modal').classList.add('hidden'); },
+
+  saveUser() {
+    const payload = {
+      originalEmail: document.getElementById('user-orig-email').value,
+      'Names': document.getElementById('user-name').value.trim(),
+      'Snap Emails': document.getElementById('user-email').value.trim(),
+      'Role': document.getElementById('user-role').value,
+      'Team': document.getElementById('user-team').value.trim(),
+      'Scheduled Shift': document.getElementById('user-shift').value,
+      'Start Shift Time': document.getElementById('user-start').value,
+      'End Shift Time': document.getElementById('user-end').value
+    };
+
+    if (!payload['Names'] || !payload['Snap Emails']) return toastError("Name and Email are required.");
+    window.showLoader('Saving User...');
+    google.script.run
+      .withSuccessHandler(res => { showToast("User saved successfully", "success"); this.closeUserModal(); this.loadUsers(); window.hideLoader(); })
+      .withFailureHandler(err => { toastError(err.message); window.hideLoader(); })
+      .API_saveUserAdmin(JSON.stringify(payload));
+  },
+  
+  deleteUserByIndex(index) {
+    if (window.CurrentUser.tier >= 2) return; 
+    const email = this.users[index]['Snap Emails'];
+    if(!confirm(`Are you sure you want to delete user ${email}?`)) return;
+    window.showLoader('Deleting User...');
+    google.script.run
+      .withSuccessHandler(res => { showToast("User deleted.", "success"); this.loadUsers(); window.hideLoader(); })
+      .API_deleteUserAdmin(email);
+  },
+
+  // BULK USERS
+  openBulkUserModal() {
+    if (window.CurrentUser.tier >= 2 || this.selectedUserEmails.size === 0) return;
+    
+    document.getElementById('bulk-modal-count').textContent = this.selectedUserEmails.size;
+    
+    const roleSelect = document.getElementById('bulk-user-role');
+    roleSelect.innerHTML = '<option value="">(No Change)</option>';
+    const allRoles = (this.config && this.config.roles && this.config.roles.length > 0) ? this.config.roles : []; 
+    allRoles.forEach(r => { roleSelect.innerHTML += `<option value="${r}">${r}</option>`; });
+
+    const shiftSelect = document.getElementById('bulk-user-shift');
+    shiftSelect.innerHTML = '<option value="">(No Change)</option><option value="CLEAR_SHIFT">-- Clear Shift --</option>';
+    if (this.config && this.config.shifts) {
+      this.config.shifts.forEach(s => { shiftSelect.innerHTML += `<option value="${s.name}">${s.name}</option>`; });
+    }
+
+    document.getElementById('bulk-user-team').value = '';
+    document.getElementById('bulk-user-start').value = '';
+    document.getElementById('bulk-user-end').value = '';
+    
+    document.getElementById('bulk-user-modal').classList.remove('hidden');
+  },
+
+  closeBulkUserModal() { document.getElementById('bulk-user-modal').classList.add('hidden'); },
+
+  saveBulkUsers() {
+    const roleVal = document.getElementById('bulk-user-role').value;
+    const teamVal = document.getElementById('bulk-user-team').value.trim();
+    const shiftVal = document.getElementById('bulk-user-shift').value;
+    const startVal = document.getElementById('bulk-user-start').value;
+    const endVal = document.getElementById('bulk-user-end').value;
+
+    let updates = {};
+    if (roleVal !== "") updates['Role'] = roleVal;
+    if (teamVal !== "") updates['Team'] = teamVal;
+    
+    if (shiftVal === "CLEAR_SHIFT") {
+      updates['Scheduled Shift'] = "";
+      updates['Start Shift Time'] = "";
+      updates['End Shift Time'] = "";
+    } else if (shiftVal !== "") {
+      updates['Scheduled Shift'] = shiftVal;
+      updates['Start Shift Time'] = startVal;
+      updates['End Shift Time'] = endVal;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return toastError("No changes specified.");
+    }
+
+    const payload = {
+      emails: Array.from(this.selectedUserEmails),
+      updates: updates
+    };
+
+    window.showLoader('Applying Bulk Updates...');
+    google.script.run
+      .withSuccessHandler(res => {
+        const response = JSON.parse(res);
+        showToast(`Successfully updated ${response.count} users.`, "success");
+        this.selectedUserEmails.clear(); 
+        this.closeBulkUserModal(); 
+        this.loadUsers(); 
+        window.hideLoader();
+      })
+      .withFailureHandler(err => { toastError(err.message); window.hideLoader(); })
+      .API_bulkUpdateUsersAdmin(JSON.stringify(payload));
+  },
+  
+  // -----------------------------------------
+  // BULK CATEGORY UPLOAD LOGIC
+  // -----------------------------------------
+  openBulkCatModal() {
+    if (window.CurrentUser.tier >= 2) return;
+    document.getElementById('cat-csv-upload').value = '';
+    document.getElementById('bulk-cat-modal').classList.remove('hidden');
+  },
+  
+  closeBulkCatModal() {
+    document.getElementById('bulk-cat-modal').classList.add('hidden');
+  },
+
+  // NEW: Download Template Function
+  downloadCatTemplateCSV() {
+    const headers = ["Label", "Description", "Frequency", "Default Priority", "Allowed Roles", "Subtypes", "Statuses", "Tools"];
+    const sampleRow = ["Client Feedback", "Handle client inquiries", "Daily", "Medium", '"Agent, QA"', '"Email, Phone"', '"Open, Resolved"', '"CRM, Mail"'];
+    
+    const csvContent = headers.join(',') + '\n' + sampleRow.join(',');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.setAttribute('href', URL.createObjectURL(blob));
+    link.setAttribute('download', 'Category_Import_Template.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+  
+  processCatCSV() {
+    const fileInput = document.getElementById('cat-csv-upload');
+    if (!fileInput.files.length) return toastError("Please select a CSV file first.");
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const text = e.target.result;
+      const lines = text.split(/\r?\n/).filter(l => l.trim() !== ''); 
+      if (lines.length < 2) {
+        return toastError("CSV file appears to be empty or missing data rows.");
+      }
+
+      const parseCSVLine = (str) => {
+        let result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < str.length; i++) {
+          let char = str[i];
+          if (char === '"' && str[i+1] === '"') {
+            current += '"';
+            i++; 
+          } else if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        result.push(current.trim());
+        return result;
+      };
+
+      const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
+      
+      const labelIdx = headers.findIndex(h => h.includes('label') || h.includes('category') || h.includes('name'));
+      const descIdx = headers.findIndex(h => h.includes('desc'));
+      const freqIdx = headers.findIndex(h => h.includes('freq'));
+      const prioIdx = headers.findIndex(h => h.includes('prior'));
+      const rolesIdx = headers.findIndex(h => h.includes('role'));
+      const subIdx = headers.findIndex(h => h.includes('sub'));
+      const statIdx = headers.findIndex(h => h.includes('status'));
+      const toolsIdx = headers.findIndex(h => h.includes('tool') || h.includes('link'));
+
+      if (labelIdx === -1) {
+        return toastError("CSV must contain a 'Label' or 'Category' column header.");
+      }
+
+      let addedCount = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const row = parseCSVLine(lines[i]);
+        const label = labelIdx >= 0 ? row[labelIdx] : null;
+        
+        if (!label) continue; 
+
+        const newId = 'cat_' + Date.now() + '_' + i;
+        
+        let freq = (freqIdx >= 0 && row[freqIdx]) ? row[freqIdx] : 'Ad-hoc';
+        if (this.config.frequencies && this.config.frequencies.length > 0 && !this.config.frequencies.includes(freq)) {
+            freq = this.config.frequencies[0]; 
+        }
+        
+        let prio = (prioIdx >= 0 && row[prioIdx]) ? row[prioIdx] : 'Medium';
+        
+        let allowedRoles = [...(this.config.roles || [])]; 
+        if (rolesIdx >= 0 && row[rolesIdx] && row[rolesIdx].trim() !== "") {
+           const parsedRoles = row[rolesIdx].split(',').map(r => r.trim()).filter(r => r);
+           const sysRolesLower = allowedRoles.map(r => r.toLowerCase());
+           allowedRoles = parsedRoles.map(pr => {
+              const fIdx = sysRolesLower.indexOf(pr.toLowerCase());
+              return fIdx >= 0 ? this.config.roles[fIdx] : pr; 
+           });
+        }
+        
+        const subTypes = (subIdx >= 0 && row[subIdx]) ? row[subIdx].split(',').map(s => s.trim()).filter(s => s) : [];
+        const statuses = (statIdx >= 0 && row[statIdx]) ? row[statIdx].split(',').map(s => s.trim()).filter(s => s) : ['Open', 'In-Progress', 'Completed'];
+        const tools = (toolsIdx >= 0 && row[toolsIdx]) ? row[toolsIdx].split(',').map(s => s.trim()).filter(s => s) : [];
+
+        this.config.taskTypes.push({ 
+          id: newId, 
+          label: label, 
+          color: this.getRandomColor(), // NEW: Uses random modern color
+          description: descIdx >= 0 ? (row[descIdx] || '') : '',
+          frequency: freq,
+          defaultPriority: prio,
+          tools: tools,
+          subTypes: subTypes, 
+          statuses: statuses, 
+          allowedRoles: allowedRoles,
+          metadata: [] 
+        }); 
+        
+        addedCount++;
+      }
+
+      if (addedCount > 0) {
+        showToast(`Successfully prepared ${addedCount} categories. Click 'Save Config' to commit.`, "success");
+        this.renderTaskTypes();
+        this.closeBulkCatModal();
+      } else {
+        toastError("No valid rows found to import.");
+      }
+    };
+
+    reader.readAsText(file);
+  }
+};
+</script>

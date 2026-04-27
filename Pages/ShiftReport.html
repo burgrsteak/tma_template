@@ -1,0 +1,575 @@
+<div class="h-full flex flex-col bg-[#F8F9FB] overflow-y-auto px-4 md:px-8 py-6 md:py-8 relative font-sans">
+  
+  <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
+    <div>
+      <h2 class="text-3xl font-black text-gray-900 tracking-tight">Shift Operations</h2>
+      <p class="text-sm font-medium text-gray-500 mt-1">Manage end-of-day handovers and team attendance.</p>
+    </div>
+    <div id="sr-date-display" class="text-sm font-bold text-blue-600 bg-blue-50 px-5 py-2.5 rounded-full border border-blue-100 hidden md:block shadow-sm tracking-wide">
+      --
+    </div>
+  </div>
+
+  <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+    <div class="flex bg-gray-200/60 p-1.5 rounded-full w-full sm:w-auto shadow-inner">
+      <button id="sr-tab-btn-team" onclick="window.ShiftReport.switchTab('team')" class="flex-1 sm:px-6 py-2 rounded-full text-sm font-bold text-gray-900 bg-white shadow-sm transition-all focus:outline-none">Team Activity</button>
+      <button id="sr-tab-btn-logs" onclick="window.ShiftReport.switchTab('logs')" class="flex-1 sm:px-6 py-2 rounded-full text-sm font-bold text-gray-500 hover:text-gray-800 transition-all focus:outline-none">Handover Logs</button>
+      <button id="sr-tab-btn-handover" onclick="window.ShiftReport.switchTab('handover')" class="flex-1 sm:px-6 py-2 rounded-full text-sm font-bold text-gray-500 hover:text-gray-800 transition-all focus:outline-none">My Handover</button>
+    </div>
+  </div>
+
+  <div id="sr-tab-team" class="hidden flex-col h-full space-y-4 pb-20">
+    <div class="flex justify-end gap-3 w-full mb-2">
+      <button onclick="window.ShiftReport.exportData()" class="px-5 py-2 text-xs font-bold text-green-600 bg-green-50 border border-green-200 hover:bg-green-100 rounded-full transition shadow-sm flex items-center gap-2 focus:outline-none">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        Export CSV
+      </button>
+      <button onclick="window.ShiftReport.fetchTeamActivity()" class="px-5 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-full transition shadow-sm flex items-center gap-2 focus:outline-none">
+        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        Refresh
+      </button>
+    </div>
+    
+    <div id="sr-loading" class="flex-1 flex flex-col justify-center items-center py-16 hidden">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-blue-600 mb-4"></div>
+      <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Loading Team Data...</p>
+    </div>
+
+    <div id="sr-content" class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hidden flex-1">
+      <div class="overflow-x-auto h-full">
+        <table class="w-full text-left border-collapse min-w-[1000px]">
+          <thead class="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10 shadow-sm border-b border-gray-100">
+            <tr class="text-[11px] uppercase tracking-widest text-gray-400 font-black">
+              <th class="p-5">Agent Name</th>
+              <th class="p-5">Role & Team</th>
+              <th class="p-5">Expected Shift</th>
+              <th class="p-5">Time In</th>
+              <th class="p-5">Time Out</th>
+              <th class="p-5">Usage Time</th>
+              <th class="p-5 text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody id="sr-table-body" class="divide-y divide-gray-50 text-sm bg-white"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="sr-tab-logs" class="hidden flex-col h-full space-y-4 pb-20 max-w-5xl mx-auto w-full">
+    <div class="flex justify-end gap-3 w-full mb-2">
+      <button onclick="window.ShiftReport.fetchLogs()" class="px-5 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-full transition shadow-sm flex items-center gap-2 focus:outline-none">
+        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        Refresh Feed
+      </button>
+    </div>
+    
+    <div id="sr-logs-loading" class="flex flex-col justify-center items-center py-16 hidden">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-blue-600 mb-4"></div>
+      <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Loading Logs...</p>
+    </div>
+    
+    <div id="sr-logs-content" class="space-y-6 hidden flex-col">
+    </div>
+  </div>
+
+  <div id="sr-tab-handover" class="hidden flex-col max-w-5xl mx-auto w-full space-y-6 pb-20">
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
+        <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Completed Today</div>
+        <div class="text-4xl font-black text-green-500" id="sr-stat-completed"><div class="animate-pulse h-10 w-16 bg-gray-100 rounded-lg"></div></div>
+      </div>
+      <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
+        <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Still Pending</div>
+        <div class="text-4xl font-black text-orange-500" id="sr-stat-pending"><div class="animate-pulse h-10 w-16 bg-gray-100 rounded-lg"></div></div>
+      </div>
+      <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
+        <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">SLA Adherence</div>
+        <div class="text-4xl font-black text-blue-600" id="sr-stat-sla">100%</div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-visible mt-2">
+      <div class="p-6 border-b border-gray-50 bg-gray-50/50 flex items-center gap-2 rounded-t-3xl">
+        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+        <h3 class="text-sm font-black uppercase tracking-widest text-gray-800">Daily Handover Details</h3>
+      </div>
+      
+      <div class="p-8 space-y-6">
+        <div>
+          <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2">Shift Summary & Accomplishments <span class="text-red-500">*</span></label>
+          <textarea id="sr-summary" rows="4" class="w-full text-sm font-medium text-gray-800 border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition shadow-sm resize-none bg-gray-50 focus:bg-white" placeholder="Briefly describe what was achieved during this shift..."></textarea>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="flex-1">
+            <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2">Pending Items for Next Shift</label>
+            <textarea id="sr-handoff" rows="3" class="w-full h-24 text-sm font-medium text-gray-800 border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition shadow-sm resize-none bg-gray-50 focus:bg-white" placeholder="Any ongoing tasks or context the next shift needs to know?"></textarea>
+          </div>
+          
+          <div class="flex-1 flex flex-col relative" id="sr-mention-container">
+            <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+              Mention / Handover To
+            </label>
+            
+            <div onclick="window.ShiftReport.toggleMentionDropdown()" class="w-full min-h-[58px] text-sm font-semibold text-gray-800 border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 hover:bg-white focus:border-blue-500 transition shadow-sm cursor-pointer flex flex-wrap gap-1.5 items-center relative">
+              <span id="sr-mention-placeholder" class="text-gray-400 font-medium px-1">Select users...</span>
+              <div id="sr-mention-pills" class="flex flex-wrap gap-1.5 w-full"></div>
+              
+              <svg class="w-4 h-4 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+            
+            <div id="sr-mention-dropdown" class="hidden absolute top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto p-2">
+              </div>
+
+            <p class="text-[10px] font-medium text-gray-400 mt-2 leading-relaxed">Select multiple users to notify them instantly via email.</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2">Blockers or Escalations</label>
+          <textarea id="sr-blockers" rows="2" class="w-full text-sm font-medium text-gray-800 border border-gray-200 rounded-xl px-4 py-3 focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition shadow-sm resize-none bg-gray-50 focus:bg-white" placeholder="Did you encounter any system issues or blockers?"></textarea>
+        </div>
+      </div>
+      
+      <div class="p-6 border-t border-gray-50 bg-gray-50/50 flex justify-end gap-3 rounded-b-3xl">
+        <button onclick="window.ShiftReport.clearForm()" class="px-6 py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition shadow-sm focus:outline-none">Clear Form</button>
+        <button id="btn-submit-report" onclick="window.ShiftReport.submitHandover()" class="px-8 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition shadow-md flex items-center justify-center focus:outline-none transform hover:-translate-y-0.5">
+          Submit Handover
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+
+<script>
+window.ShiftReport = {
+  currentData: [], 
+  myTasks: [],
+  tabs: ['team', 'logs', 'handover'],
+
+  init() {
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const dateEl = document.getElementById('sr-date-display');
+    if (dateEl) dateEl.textContent = new Date().toLocaleDateString(undefined, options);
+
+    this.populateUsers(); 
+    this.setupDropdownListener(); // Close dropdown if clicked outside
+
+    if (window.CurrentUser && window.CurrentUser.tier >= 3) {
+      const teamBtn = document.getElementById('sr-tab-btn-team');
+      const logsBtn = document.getElementById('sr-tab-btn-logs');
+      if (teamBtn) teamBtn.style.display = 'none';
+      if (logsBtn) logsBtn.style.display = 'none';
+      this.switchTab('handover');
+    } else {
+      this.switchTab('team');
+    }
+  },
+
+  // MULTI-SELECT DROPDOWN LOGIC
+  toggleMentionDropdown() {
+    const dropdown = document.getElementById('sr-mention-dropdown');
+    dropdown.classList.toggle('hidden');
+  },
+
+  setupDropdownListener() {
+    document.addEventListener('click', (e) => {
+      const container = document.getElementById('sr-mention-container');
+      const dropdown = document.getElementById('sr-mention-dropdown');
+      if (container && dropdown && !container.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+  },
+
+  populateUsers() {
+    const dropdown = document.getElementById('sr-mention-dropdown');
+    if (!dropdown || !window.AppConfig || !window.AppConfig.users) return;
+    dropdown.innerHTML = '';
+    
+    window.AppConfig.users.forEach(user => {
+      // Don't let users mention themselves
+      if (window.CurrentUser && user.email !== window.CurrentUser.email) {
+        const label = document.createElement('label');
+        label.className = 'flex items-center gap-3 p-2.5 hover:bg-blue-50 rounded-lg cursor-pointer transition-colors';
+        label.innerHTML = `
+          <input type="checkbox" value="${user.email}" data-name="${user.name}" onchange="window.ShiftReport.updateMentionPills()" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer">
+          <div class="flex flex-col">
+            <span class="text-xs font-bold text-gray-800">${user.name}</span>
+            <span class="text-[9px] font-bold uppercase tracking-widest text-gray-400">${user.role}</span>
+          </div>
+        `;
+        dropdown.appendChild(label);
+      }
+    });
+  },
+
+  updateMentionPills() {
+    const checkboxes = document.querySelectorAll('#sr-mention-dropdown input[type="checkbox"]:checked');
+    const pillsContainer = document.getElementById('sr-mention-pills');
+    const placeholder = document.getElementById('sr-mention-placeholder');
+    
+    pillsContainer.innerHTML = '';
+    
+    if (checkboxes.length > 0) {
+      placeholder.classList.add('hidden');
+      checkboxes.forEach(cb => {
+        const firstName = cb.dataset.name.split(' ')[0];
+        pillsContainer.innerHTML += `
+          <span class="bg-blue-100 text-blue-800 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded border border-blue-200 shadow-sm whitespace-nowrap">
+            @${firstName}
+          </span>
+        `;
+      });
+    } else {
+      placeholder.classList.remove('hidden');
+    }
+  },
+
+  switchTab(tabId) {
+    this.tabs.forEach(t => {
+      const btn = document.getElementById('sr-tab-btn-' + t);
+      const content = document.getElementById('sr-tab-' + t);
+      if (!btn || !content) return;
+      
+      if (t === tabId) {
+        btn.className = 'flex-1 sm:px-6 py-2 rounded-full text-sm font-bold text-gray-900 bg-white shadow-sm transition-all focus:outline-none';
+        content.classList.remove('hidden');
+        content.classList.add('flex'); 
+      } else {
+        btn.className = 'flex-1 sm:px-6 py-2 rounded-full text-sm font-bold text-gray-500 hover:text-gray-800 bg-transparent shadow-none transition-all focus:outline-none';
+        content.classList.add('hidden');
+        content.classList.remove('flex');
+      }
+    });
+
+    if (tabId === 'handover') this.fetchMyMetrics();
+    if (tabId === 'team') this.fetchTeamActivity();
+    if (tabId === 'logs') this.fetchLogs();
+  },
+
+  fetchTeamActivity() {
+    document.getElementById('sr-content').classList.add('hidden');
+    document.getElementById('sr-loading').classList.remove('hidden');
+
+    google.script.run
+      .withSuccessHandler(res => {
+        try {
+          const response = JSON.parse(res);
+          if (response.success) {
+            this.currentData = response.data;
+            this.renderTable(response.data);
+          } else {
+            if (typeof toastError === "function") toastError('Failed to load report: ' + response.error);
+            this.hideTeamLoading();
+          }
+        } catch(e) { this.hideTeamLoading(); }
+      })
+      .API_getShiftReport();
+  },
+
+  hideTeamLoading() {
+    document.getElementById('sr-loading').classList.add('hidden');
+    document.getElementById('sr-content').classList.remove('hidden');
+  },
+
+  extractTimeParts(val) {
+    if (!val) return null;
+    if (typeof val === 'string' && val.includes('T')) {
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        if (d.getUTCFullYear() === 1899) {
+           return { h: d.getUTCHours(), m: d.getUTCMinutes() };
+        }
+        return { h: d.getHours(), m: d.getMinutes() };
+      }
+    }
+    if (typeof val === 'string' && val.includes(':')) {
+      const parts = val.split(':');
+      return { h: parseInt(parts[0], 10), m: parseInt(parts[1], 10) };
+    }
+    return null;
+  },
+
+  formatShiftTime(timeStr) {
+    const pts = this.extractTimeParts(timeStr);
+    if (!pts) return '';
+    let { h, m } = pts;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    const mStr = m.toString().padStart(2, '0');
+    return h + ':' + mStr + ' ' + ampm;
+  },
+
+  parseTimeString(timeStr, baseDateObj) {
+    const pts = this.extractTimeParts(timeStr);
+    if (!pts) return null;
+    let d = new Date(baseDateObj.getTime());
+    d.setHours(pts.h, pts.m, 0, 0);
+    return d;
+  },
+
+  renderTable(logs) {
+    const tbody = document.getElementById('sr-table-body');
+    tbody.innerHTML = '';
+    
+    if (!logs || logs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400 italic font-medium">No activity recorded in the last 24 hours.</td></tr>';
+      this.hideTeamLoading();
+      return;
+    }
+
+    logs.forEach(log => {
+      const teamName = log.team || '--';
+      const shiftStartStr = log.shiftStart || '';
+      const shiftEndStr = log.shiftEnd || '';
+      
+      const fStart = this.formatShiftTime(shiftStartStr);
+      const fEnd = this.formatShiftTime(shiftEndStr);
+      const expectedShiftDisp = (fStart && fEnd) ? fStart + ' - ' + fEnd : '--';
+
+      const timeInObj = new Date(log.timeIn);
+      const timeInStr = timeInObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      let timeInBadge = '';
+      let timeOutBadge = '';
+      let expectedEndObj = null;
+
+      if (shiftStartStr && shiftEndStr) {
+        const expectedStartObj = this.parseTimeString(shiftStartStr, timeInObj);
+        expectedEndObj = this.parseTimeString(shiftEndStr, timeInObj);
+        
+        if (expectedStartObj && expectedEndObj && expectedEndObj < expectedStartObj) {
+            expectedEndObj.setDate(expectedEndObj.getDate() + 1);
+        }
+
+        if (expectedStartObj && timeInObj > expectedStartObj) {
+          const diffMins = Math.floor((timeInObj - expectedStartObj) / 60000);
+          timeInBadge = '<span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-red-50 text-red-600 border border-red-100 whitespace-nowrap ml-2">Late (' + diffMins + 'm)</span>';
+        } else {
+          timeInBadge = '<span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-green-50 text-green-600 border border-green-100 whitespace-nowrap ml-2">On Time</span>';
+        }
+      }
+
+      let timeOutStr = '--';
+      let usageTimeStr = '--';
+
+      if (log.timeOut) {
+        const timeOutObj = new Date(log.timeOut);
+        timeOutStr = timeOutObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        if (expectedEndObj && timeOutObj < expectedEndObj) {
+          const diffMins = Math.floor((expectedEndObj - timeOutObj) / 60000);
+          if (diffMins > 0 && diffMins < 1440) {
+            timeOutBadge = '<span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-orange-50 text-orange-600 border border-orange-100 whitespace-nowrap ml-2">Early Out (' + diffMins + 'm)</span>';
+          }
+        }
+
+        const diffMs = timeOutObj - timeInObj;
+        const hours = Math.floor(diffMs / 3600000);
+        const mins = Math.floor((diffMs % 3600000) / 60000);
+        usageTimeStr = hours + 'h ' + mins + 'm';
+
+      } else {
+        const now = new Date();
+        const diffMs = now - timeInObj;
+        const hours = Math.floor(diffMs / 3600000);
+        const mins = Math.floor((diffMs % 3600000) / 60000);
+        usageTimeStr = hours + 'h ' + mins + 'm <span class="text-blue-500 animate-pulse text-[10px]">...</span>';
+      }
+
+      let statusHtml = '';
+      if (log.isActive) {
+        statusHtml = '<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-green-100/50 text-green-700 border border-green-200"><span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Active</span>';
+      } else {
+        let remarkHtml = log.remark ? '<div class="text-[9px] text-red-500 font-bold mt-1.5 leading-tight text-right whitespace-normal" title="' + log.remark + '">⚠️ Auto-Closed</div>' : '';
+        statusHtml = '<div class="flex flex-col items-end"><span class="inline-flex px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-gray-100 text-gray-500 border border-gray-200">Ended</span>' + remarkHtml + '</div>';
+      }
+
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-gray-50/50 transition-colors group cursor-default';
+      tr.innerHTML = '<td class="p-5 font-black text-gray-900 group-hover:text-blue-600 transition-colors">' + log.name + '</td>' +
+                     '<td class="p-5"><div class="flex flex-col gap-0.5"><span class="text-xs font-bold text-gray-700">' + log.role + '</span><span class="text-[9px] font-black uppercase tracking-widest text-gray-400">' + teamName + '</span></div></td>' +
+                     '<td class="p-5 text-gray-600 text-xs font-bold">' + expectedShiftDisp + '</td>' +
+                     '<td class="p-5 text-gray-700 font-mono text-xs font-medium"><div class="flex items-center">' + timeInStr + timeInBadge + '</div></td>' +
+                     '<td class="p-5 text-gray-700 font-mono text-xs font-medium"><div class="flex items-center">' + timeOutStr + timeOutBadge + '</div></td>' +
+                     '<td class="p-5 text-blue-600 font-mono font-bold text-sm">' + usageTimeStr + '</td>' +
+                     '<td class="p-5 text-right">' + statusHtml + '</td>';
+      tbody.appendChild(tr);
+    });
+
+    this.hideTeamLoading();
+  },
+
+  exportData() {
+    if (!this.currentData || this.currentData.length === 0) return typeof toastError === "function" ? toastError("No data available to export.") : null;
+    if (typeof downloadCSV === "function") downloadCSV('Team_Shift_Report_' + new Date().toISOString().split('T')[0] + '.csv', this.currentData);
+  },
+
+  fetchLogs() {
+    document.getElementById('sr-logs-content').classList.add('hidden');
+    document.getElementById('sr-logs-loading').classList.remove('hidden');
+
+    google.script.run
+      .withSuccessHandler(res => {
+        try {
+          const response = JSON.parse(res);
+          if (response.success) {
+            this.renderLogs(response.data);
+          } else {
+            if (typeof toastError === "function") toastError("Failed to fetch logs.");
+            this.hideLogsLoading();
+          }
+        } catch(e) { this.hideLogsLoading(); }
+      })
+      .API_getShiftLogs();
+  },
+
+  hideLogsLoading() {
+    document.getElementById('sr-logs-loading').classList.add('hidden');
+    document.getElementById('sr-logs-content').classList.remove('hidden');
+  },
+
+  renderLogs(logs) {
+    const container = document.getElementById('sr-logs-content');
+    container.innerHTML = '';
+
+    if (!logs || logs.length === 0) {
+      container.innerHTML = '<div class="bg-white p-8 rounded-3xl border border-gray-100 text-center text-gray-400 font-medium italic shadow-sm mt-4">No handover logs submitted yet.</div>';
+    } else {
+      logs.forEach(log => {
+        const dateObj = new Date(log['Timestamp']);
+        const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow';
+        
+        let html = '<div class="p-6 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">' +
+                     '<div><div class="font-black text-gray-900 text-lg">' + (log['User Email'] || 'Unknown') + '</div>' +
+                     '<div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1 flex items-center gap-1.5"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ' + dateStr + '</div></div>' +
+                     '<div class="flex gap-6 text-center">' +
+                        '<div><div class="text-2xl font-black text-green-500 leading-none">' + (log['Completed Today'] || 0) + '</div><div class="text-[9px] uppercase font-black tracking-widest text-gray-400 mt-1">Done</div></div>' +
+                        '<div><div class="text-2xl font-black text-orange-500 leading-none">' + (log['Pending'] || 0) + '</div><div class="text-[9px] uppercase font-black tracking-widest text-gray-400 mt-1">Pend</div></div>' +
+                     '</div>' +
+                   '</div>' +
+                   '<div class="p-8 space-y-6">' +
+                     '<div><h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-2"><span class="w-1.5 h-1.5 bg-gray-400 rounded-full"></span> Summary</h4>' +
+                     '<p class="text-sm font-medium text-gray-800 whitespace-pre-wrap leading-relaxed pl-3 border-l-2 border-gray-100">' + (log['Summary'] || 'No summary provided.') + '</p></div>';
+
+        if (log['Handoff Notes'] && log['Handoff Notes'] !== 'None') {
+          html += '<div><h4 class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 flex items-center gap-2"><span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> Pending Handoff</h4>' +
+                  '<p class="text-sm font-medium text-gray-800 whitespace-pre-wrap leading-relaxed pl-3 border-l-2 border-blue-100">' + log['Handoff Notes'] + '</p></div>';
+        }
+
+        if (log['Blockers'] && log['Blockers'] !== 'None') {
+          html += '<div class="bg-red-50/50 p-4 rounded-2xl border border-red-100"><h4 class="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2 flex items-center gap-2"><span class="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse"></span> Blockers</h4>' +
+                  '<p class="text-sm font-medium text-red-900 whitespace-pre-wrap leading-relaxed">' + log['Blockers'] + '</p></div>';
+        }
+        
+        // Display Multiple Mention Badges
+        const mentionedRaw = log['Mentioned Users'] || log['Mentioned User']; // Backwards compatibility for column name
+        if (mentionedRaw && mentionedRaw !== 'None') {
+           const mentionedList = mentionedRaw.split(',').map(m => m.trim());
+           let pillsHtml = '';
+           mentionedList.forEach(m => {
+              const mentionName = m.split('@')[0];
+              pillsHtml += `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-50 border border-blue-100 shadow-sm text-[9px] font-black uppercase tracking-wider text-blue-700">
+                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                             ${mentionName}
+                           </span>`;
+           });
+           html += `<div class="mt-4 flex flex-wrap gap-2">${pillsHtml}</div>`;
+        }
+
+        html += '</div>';
+        card.innerHTML = html;
+        container.appendChild(card);
+      });
+    }
+    this.hideLogsLoading();
+  },
+
+  fetchMyMetrics() {
+    google.script.run
+      .withSuccessHandler(res => {
+        try {
+          const response = JSON.parse(res);
+          this.myTasks = response.rows || [];
+          this.calculateMetrics();
+        } catch(e) {}
+      })
+      .API_getTasks(1, 200, false); 
+  },
+
+  calculateMetrics() {
+    const todayObj = new Date();
+    const prefix = todayObj.getFullYear() + '_' + String(todayObj.getMonth() + 1).padStart(2, '0') + '_' + String(todayObj.getDate()).padStart(2, '0');
+    let comp = 0, pend = 0;
+
+    this.myTasks.forEach(task => {
+      if (task.status !== 'Completed' && task.status !== 'Done') pend++;
+      else if (task.title.includes(prefix) || (task.updatedAt && task.updatedAt.includes(prefix.replace(/_/g, '-')))) comp++;
+    });
+
+    const compEl = document.getElementById('sr-stat-completed');
+    const pendEl = document.getElementById('sr-stat-pending');
+    if(compEl) compEl.textContent = comp;
+    if(pendEl) pendEl.textContent = pend;
+  },
+
+  clearForm() {
+    document.getElementById('sr-summary').value = '';
+    document.getElementById('sr-handoff').value = '';
+    document.getElementById('sr-blockers').value = '';
+    
+    // Clear checkboxes
+    const checkboxes = document.querySelectorAll('#sr-mention-dropdown input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.checked = false);
+    this.updateMentionPills();
+
+    const btn = document.getElementById('btn-submit-report');
+    if (btn) { btn.textContent = 'Submit Handover'; btn.disabled = false; }
+  },
+
+  submitHandover() {
+    const summary = document.getElementById('sr-summary').value.trim();
+    if (!summary) return typeof toastError === "function" ? toastError("Shift Summary is required.") : null;
+
+    // Gather all selected users
+    const checkboxes = document.querySelectorAll('#sr-mention-dropdown input[type="checkbox"]:checked');
+    const mentionedUsers = Array.from(checkboxes).map(cb => cb.value);
+
+    const payload = {
+      user: window.CurrentUser.email,
+      completedCount: document.getElementById('sr-stat-completed').textContent,
+      pendingCount: document.getElementById('sr-stat-pending').textContent,
+      summary: summary,
+      handoff: document.getElementById('sr-handoff').value.trim(),
+      blockers: document.getElementById('sr-blockers').value.trim(),
+      mentionedUsers: mentionedUsers 
+    };
+
+    const btn = document.getElementById('btn-submit-report');
+    btn.innerHTML = `<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div> Submitting...`;
+    btn.disabled = true;
+
+    google.script.run
+      .withSuccessHandler(() => {
+        if (typeof showToast === "function") showToast("Shift Handover submitted!", "success");
+        this.clearForm();
+      })
+      .withFailureHandler(err => {
+        if (typeof toastError === "function") toastError("Submission failed: " + err.message);
+        btn.textContent = 'Submit Handover'; btn.disabled = false;
+      })
+      .API_submitShiftHandover(JSON.stringify(payload));
+  }
+};
+</script>

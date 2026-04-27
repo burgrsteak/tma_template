@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Task Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <?!= include('ClientCore'); ?>
+
+  <style>
+    /* ==================================================================
+       MODERN DARK MODE: Monochromatic Minimalism
+       Applied globally across all pages.
+       ================================================================== */
+    
+    body.dark-mode,
+    body.dark-mode [class*="bg-[#F8F9FB]"],
+    body.dark-mode .bg-white {
+      background-color: #121212 !important;
+      color: #E0E0E0 !important;
+    }
+
+    body.dark-mode .bg-gray-50,
+    body.dark-mode .bg-gray-100,
+    body.dark-mode .bg-gray-200,
+    body.dark-mode [class*="bg-gray-200"],
+    body.dark-mode input,
+    body.dark-mode select,
+    body.dark-mode textarea {
+      background-color: #444444 !important;
+      border-color: #444444 !important;
+      color: #E0E0E0 !important;
+    }
+
+    body.dark-mode .hover\:bg-gray-50:hover,
+    body.dark-mode .hover\:bg-gray-100:hover,
+    body.dark-mode .hover\:bg-gray-200:hover,
+    body.dark-mode button:hover.bg-gray-50,
+    body.dark-mode button:hover.bg-gray-100,
+    body.dark-mode button:hover.bg-gray-200 {
+      background-color: #888888 !important;
+      color: #121212 !important;
+    }
+
+    body.dark-mode .text-gray-900,
+    body.dark-mode .text-gray-800,
+    body.dark-mode .text-gray-700,
+    body.dark-mode .text-black,
+    body.dark-mode h1, 
+    body.dark-mode h2, 
+    body.dark-mode h3 {
+      color: #E0E0E0 !important;
+    }
+
+    body.dark-mode .text-gray-600,
+    body.dark-mode .text-gray-500,
+    body.dark-mode .text-gray-400,
+    body.dark-mode p {
+      color: #B0B0B0 !important;
+    }
+
+    body.dark-mode .border-gray-100,
+    body.dark-mode .border-gray-200,
+    body.dark-mode .border-gray-300,
+    body.dark-mode [class*="border-gray-"],
+    body.dark-mode [class*="border-dashed"] {
+      border-color: #444444 !important;
+    }
+
+    body.dark-mode .text-blue-600, body.dark-mode .text-blue-700, body.dark-mode .text-blue-800 { color: #93C5FD !important; }
+    body.dark-mode .text-red-500, body.dark-mode .text-red-600, body.dark-mode .text-red-700, body.dark-mode .text-red-800 { color: #FCA5A5 !important; }
+    body.dark-mode .text-green-500, body.dark-mode .text-green-600, body.dark-mode .text-green-700 { color: #86EFAC !important; }
+    body.dark-mode .text-orange-500, body.dark-mode .text-orange-600, body.dark-mode .text-orange-700 { color: #FDBA74 !important; }
+    body.dark-mode .text-purple-500, body.dark-mode .text-purple-600 { color: #D8B4FE !important; }
+    body.dark-mode .text-teal-500, body.dark-mode .text-teal-600 { color: #5EEAD4 !important; }
+
+    body.dark-mode .bg-blue-50, body.dark-mode .bg-blue-100 { background-color: rgba(59, 130, 246, 0.15) !important; border: 1px solid rgba(59, 130, 246, 0.3) !important; }
+    body.dark-mode .bg-red-50, body.dark-mode .bg-red-100 { background-color: rgba(239, 68, 68, 0.15) !important; border: 1px solid rgba(239, 68, 68, 0.3) !important; }
+    body.dark-mode .bg-green-50, body.dark-mode .bg-green-100 { background-color: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; }
+    body.dark-mode .bg-orange-50, body.dark-mode .bg-orange-100 { background-color: rgba(249, 115, 22, 0.15) !important; border: 1px solid rgba(249, 115, 22, 0.3) !important; }
+    body.dark-mode .bg-purple-50, body.dark-mode .bg-purple-100 { background-color: rgba(168, 85, 247, 0.15) !important; border: 1px solid rgba(168, 85, 247, 0.3) !important; }
+    body.dark-mode .bg-teal-50, body.dark-mode .bg-teal-100 { background-color: rgba(20, 184, 166, 0.15) !important; border: 1px solid rgba(20, 184, 166, 0.3) !important; }
+
+    body.dark-mode .modern-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23E0E0E0' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E") !important;
+    }
+
+    body.dark-mode .shadow-sm, body.dark-mode .shadow-md, body.dark-mode .shadow-lg, body.dark-mode .shadow-2xl {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* ==================================================================
+       SIDEBAR MINIMIZATION CSS (PERFECTLY CENTERED ICONS)
+       ================================================================== */
+    #app-sidebar { transition: width 0.3s ease; overflow-x: hidden; }
+    #app-sidebar.sidebar-collapsed { width: 5rem !important; }
+    
+    /* Instantly kill text so it never chops or wraps during animation */
+    #app-sidebar.sidebar-collapsed .logo-text,
+    #app-sidebar.sidebar-collapsed .nav-text,
+    #app-sidebar.sidebar-collapsed .user-info { 
+        display: none !important; 
+    }
+  </style>
+
+  <script>
+    function toggleDarkMode() {
+      const isDark = document.body.classList.toggle('dark-mode');
+      localStorage.setItem('tm_dark_mode', isDark);
+    }
+
+    window.toggleSidebar = function() {
+      const sidebar = document.getElementById('app-sidebar');
+      if (sidebar) {
+        sidebar.classList.toggle('sidebar-collapsed');
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('tm_dark_mode') === 'true') {
+        document.body.classList.add('dark-mode');
+      }
+    });
+  </script>
+</head>
+
+<body class="bg-gray-50 text-gray-900 antialiased flex h-screen overflow-hidden">
+  
+  <aside id="app-sidebar" class="w-64 bg-gray-900 text-white flex-col hidden transition-all z-20 shadow-lg relative">
+    
+    <div class="h-16 flex items-center border-b border-gray-800 text-blue-400 overflow-hidden w-full whitespace-nowrap">
+      <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
+        <svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <span id="sidebar-app-name" class="logo-text text-xl font-bold tracking-tight pr-4 truncate block">Task Manager</span>
+    </div>
+
+    <nav class="flex-1 py-4 space-y-2 overflow-y-auto overflow-x-hidden">
+      <a href="#" id="nav-Dashboard" onclick="loadPage('Dashboard')" class="nav-link flex items-center h-12 text-gray-400 transition hover:bg-gray-800 hover:text-white whitespace-nowrap w-full">
+        <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+        </div>
+        <span class="nav-text font-medium pr-4 truncate block">Dashboard</span>
+      </a>
+      
+      <a href="#" id="nav-ShiftReport" onclick="loadPage('ShiftReport')" class="nav-link flex items-center h-12 text-gray-400 transition hover:bg-gray-800 hover:text-white whitespace-nowrap w-full">
+        <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        </div>
+        <span class="nav-text font-medium pr-4 truncate block">Shift Report</span>
+      </a>
+
+      <a href="#" id="nav-Analytics" onclick="loadPage('Analytics'); if(window.Analytics) window.Analytics.init();" class="nav-link flex items-center h-12 text-gray-400 transition hover:bg-gray-800 hover:text-white whitespace-nowrap w-full">
+        <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        </div>
+        <span class="nav-text font-medium pr-4 truncate block">Insights</span>
+      </a>
+
+      <a href="#" id="nav-Settings" onclick="loadPage('Settings'); if(window.SettingsPage) window.SettingsPage.init();" class="nav-link flex items-center h-12 text-gray-400 transition hover:bg-gray-800 hover:text-white whitespace-nowrap w-full">
+        <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        </div>
+        <span class="nav-text font-medium pr-4 truncate block">Settings</span>
+      </a>
+    </nav>
+
+    <div class="mt-auto border-t border-gray-800 bg-gray-800/30 overflow-hidden w-full whitespace-nowrap pb-2">
+      
+      <div class="user-info w-full px-6 py-4 mb-2">
+        <div id="sidebar-user-name" class="text-sm font-bold text-white truncate block w-full">User Name</div>
+        <div id="sidebar-user-role" class="text-[10px] uppercase text-gray-400 tracking-widest block mt-0.5">Role</div>
+      </div>
+      
+      <div id="dev-switcher-container" class="hidden px-6 mb-3 user-info w-full">
+        <div class="text-[9px] uppercase text-blue-400 font-bold mb-1 tracking-widest">Dev Menu</div>
+        <select id="dev-role-select" onchange="changeDevRole(this.value)" class="w-full text-xs bg-gray-900 border border-gray-700 text-gray-300 rounded px-2 py-1.5 focus:outline-none focus:border-blue-500 transition shadow-sm cursor-pointer">
+          </select>
+      </div>
+
+      <button onclick="toggleDarkMode()" title="Toggle Dark Mode" class="w-full flex items-center h-12 text-gray-400 transition hover:bg-gray-700 hover:text-white focus:outline-none mb-1">
+        <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+        </div>
+        <span class="nav-text font-bold pr-4 truncate block text-left">Theme</span>
+      </button>
+
+      <button onclick="logOutApp()" title="Log Out" class="w-full flex items-center h-12 text-gray-400 transition hover:bg-red-500/20 hover:text-red-400 focus:outline-none">
+        <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+        </div>
+        <span class="nav-text font-bold pr-4 truncate block text-left">Log Out</span>
+      </button>
+
+    </div>
+  </aside>
+
+  <main class="flex-1 flex flex-col h-screen relative w-full overflow-hidden">
+    <div id="app" class="flex-1 overflow-hidden relative">
+      <div id="view-Login" class="view-section hidden h-full w-full">
+        <?!= include('Pages/Login'); ?>
+      </div>
+      <div id="view-Dashboard" class="view-section hidden h-full w-full">
+        <?!= include('Pages/Dashboard'); ?>
+      </div>
+      <div id="view-ShiftReport" class="view-section hidden h-full w-full">
+        <?!= include('Pages/ShiftReport'); ?>
+      </div>
+      <div id="view-Analytics" class="view-section hidden h-full w-full">
+        <?!= include('Pages/Analytics'); ?>
+      </div>
+      <div id="view-Settings" class="view-section hidden h-full w-full">
+        <?!= include('Pages/Settings'); ?>
+      </div>
+    </div>
+    
+    <button id="mobile-fab" onclick="TaskModal.open()" class="hidden fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 z-40 transition-transform hover:scale-110 active:scale-95">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+    </button>
+
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[9999] flex flex-col space-y-2 pointer-events-none"></div>
+  </main>
+
+  <div id="global-loader" class="fixed inset-0 z-[9999] bg-gray-900/50 backdrop-blur-sm flex flex-col items-center justify-center transition-opacity">
+    <div class="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-4 min-w-[200px] transform transition-transform scale-100">
+      <div class="relative w-12 h-12">
+        <div class="absolute inset-0 rounded-full border-4 border-gray-100"></div>
+        <div class="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
+      </div>
+      <span id="global-loader-text" class="text-sm font-black text-gray-700 tracking-wide uppercase">Initializing App...</span>
+    </div>
+  </div>
+
+  <script>
+    // Global Helper Functions for the Loader
+    window.showLoader = function(message = 'Processing...') {
+      const loader = document.getElementById('global-loader');
+      const text = document.getElementById('global-loader-text');
+      if (text) text.textContent = message;
+      if (loader) {
+        loader.classList.remove('hidden');
+        loader.classList.add('flex');
+      }
+    };
+
+    window.hideLoader = function() {
+      const loader = document.getElementById('global-loader');
+      if (loader) {
+        loader.classList.remove('flex');
+        loader.classList.add('hidden');
+      }
+    };
+  </script>
+
+  <?!= include('Components/Modal'); ?>
+  <?!= include('Components/ViewTaskModal'); ?>
+  <?!= include('Components/DailyRoutineModal'); ?>
+  <?!= include('Components/ActivityModal'); ?>
+  <?!= include('Components/CalendarModal'); ?>
+  
+  <script>
+    window.AppConfig = null;
+    window.CurrentUser = null;
+
+    // --- DEV MENU LOGIC ---
+    window.changeDevRole = function(newRole) {
+      if(!newRole) return;
+      window.showLoader(`Switching to ${newRole}...`);
+      google.script.run
+        .withSuccessHandler(res => {
+          showToast(`Role switched! Reloading...`, 'success');
+          setTimeout(() => location.reload(), 1000); 
+        })
+        .withFailureHandler(err => {
+          toastError(err.message);
+          window.hideLoader();
+        })
+        .API_devSwitchRole(newRole);
+    };
+
+    function updateSidebarUser(user) {
+      if (!user) return;
+      document.getElementById('sidebar-user-name').textContent = user.name || 'Unknown User';
+      document.getElementById('sidebar-user-role').textContent = user.role || 'No Role';
+    }
+
+    function logOutApp() {
+      if (window.heartbeatInterval) clearInterval(window.heartbeatInterval);
+      const sidebar = document.getElementById('app-sidebar');
+      sidebar.classList.add('hidden');
+      sidebar.classList.remove('sm:flex');
+      document.getElementById('mobile-fab').classList.add('hidden');
+      
+      loadPage('Login');
+      
+      google.script.run
+        .withSuccessHandler(() => { showToast('Logged out successfully.', 'success'); })
+        .withFailureHandler(err => toastError('Logout error: ' + err.message))
+        .API_logoutUser();
+    }
+
+    function downloadCSV(filename, dataArray) {
+      if (!dataArray || dataArray.length === 0) {
+        showToast('No data to export.', 'error');
+        return;
+      }
+      const headers = Object.keys(dataArray[0]);
+      const csvRows = [headers.join(',')];
+      for (const row of dataArray) {
+        const values = headers.map(header => {
+          let val = row[header] === null || row[header] === undefined ? '' : row[header];
+          val = val.toString().replace(/"/g, '""');
+          if (val.search(/("|,|\n)/g) >= 0) val = `"${val}"`;
+          return val;
+        });
+        csvRows.push(values.join(','));
+      }
+      const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.setAttribute('href', URL.createObjectURL(blob));
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Export complete!', 'success');
+    }
+
+    // --- NOTIFICATIONS ---
+    window.notifications = [];
+    function toggleNotifications() {
+      const panel = document.getElementById('notif-panel');
+      if(panel) {
+        panel.classList.toggle('hidden');
+        if (!panel.classList.contains('hidden')) {
+          const badge = document.getElementById('notif-badge');
+          if(badge) badge.classList.add('hidden');
+        }
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const panel = document.getElementById('notif-panel');
+      if(!panel) return;
+      const bell = e.target.closest('button[onclick="toggleNotifications()"]');
+      if (!bell && !panel.contains(e.target)) panel.classList.add('hidden');
+    });
+
+    function addNotification(title, message, taskId) {
+      window.notifications.unshift({ id: Date.now(), title, message, taskId, time: new Date() });
+      if (window.notifications.length > 20) window.notifications.pop();
+      renderNotifications();
+      const panel = document.getElementById('notif-panel');
+      if (panel && panel.classList.contains('hidden')) {
+        const badge = document.getElementById('notif-badge');
+        if(badge) { badge.textContent = window.notifications.length; badge.classList.remove('hidden'); }
+      }
+    }
+
+    function renderNotifications() {
+      const list = document.getElementById('notif-list');
+      if(!list) return;
+      if (window.notifications.length === 0) {
+        list.innerHTML = '<div class="p-4 text-center text-xs text-gray-400 italic">No new updates</div>';
+        return;
+      }
+      list.innerHTML = window.notifications.map(n => `
+        <div onclick="window.ViewTaskModal.open('${n.taskId}'); toggleNotifications();" class="p-4 hover:bg-blue-50 cursor-pointer transition border-l-4 border-transparent hover:border-blue-500 text-left">
+          <div class="font-bold text-xs text-gray-800">${n.title}</div>
+          <div class="text-[11px] text-gray-500 mt-0.5 line-clamp-2">${n.message}</div>
+          <div class="text-[9px] text-gray-400 mt-1 uppercase font-bold">${n.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+        </div>
+      `).join('');
+    }
+
+    // --- HEARTBEAT ---
+    window.lastCheckTime = null; 
+    window.heartbeatInterval = null;
+
+    function startHeartbeat() {
+      if (window.heartbeatInterval) clearInterval(window.heartbeatInterval);
+      window.heartbeatInterval = setInterval(() => {
+        if (!window.CurrentUser?.email) return;
+        google.script.run
+          .withSuccessHandler(res => {
+            const response = JSON.parse(res);
+            if (response.success) {
+              if (window.lastCheckTime && response.updates?.length > 0) {
+                response.updates.forEach(u => { addNotification(u.title, u.message, u.taskId); showToast('Update: ' + u.title, 'info'); });
+                if (!document.getElementById('view-Dashboard').classList.contains('hidden')) window.Dashboard?.init();
+              }
+              window.lastCheckTime = response.serverTime;
+            }
+          })
+          .API_checkNewAssignments(window.lastCheckTime, window.CurrentUser.email); 
+      }, 15000);
+    }
+
+    // --- INITIALIZATION ---
+    window.onload = () => {
+      google.script.run
+        .withSuccessHandler(res => {
+          const response = JSON.parse(res);
+          if (response.active) {
+            window.CurrentUser = response.user;
+            google.script.run
+              .withSuccessHandler(configRes => {
+                const conf = JSON.parse(configRes);
+                if (conf.success) {
+                  window.AppConfig = conf.data;
+                  updateSidebarUser(window.CurrentUser);
+
+                  // FIX: Set text explicitly instead of injecting HTML here
+                  const appTitle = document.getElementById('sidebar-app-name');
+                  if (appTitle && window.AppConfig.appName) {
+                     appTitle.textContent = window.AppConfig.appName;
+                     document.title = window.AppConfig.appName;
+                  }
+
+                  const defaultTiers = {
+                    "0": ["SDL", "Dev"],
+                    "1": ["TL", "OM", "Ops Lead"],
+                    "2": ["SME", "QA"],
+                    "3": ["Agent"]
+                  };
+                  
+                  const activeTiers = window.AppConfig.roleTiers || defaultTiers;
+                  let userTier = 3; 
+                  
+                  for (const [tierLvl, rolesArray] of Object.entries(activeTiers)) {
+                    if (rolesArray.some(r => r.toLowerCase() === (window.CurrentUser.role || '').toLowerCase())) {
+                      userTier = parseInt(tierLvl);
+                      break;
+                    }
+                  }
+                  
+                  window.CurrentUser.tier = userTier;
+
+                  if (userTier === 0) localStorage.setItem('tm_is_dev', 'true');
+                  
+                  if (localStorage.getItem('tm_is_dev') === 'true') {
+                    const devContainer = document.getElementById('dev-switcher-container');
+                    const devSelect = document.getElementById('dev-role-select');
+                    if (devContainer && devSelect) {
+                      devContainer.classList.remove('hidden');
+                      devSelect.innerHTML = '<option value="">-- Test As --</option><option value="Dev" class="font-bold text-blue-400">Restore to Dev</option>';
+                      const allRoles = window.AppConfig.roles || ['Agent', 'TL', 'SME', 'QA', 'SDL', 'Dev', 'OM', 'Ops Lead'];
+                      allRoles.forEach(r => devSelect.innerHTML += `<option value="${r}">${r}</option>`);
+                    }
+                  }
+
+                  const settingsNav = document.getElementById('nav-Settings');
+                  if (settingsNav) {
+                    if (userTier >= 3) {
+                      settingsNav.classList.add('hidden');
+                    } else {
+                      settingsNav.classList.remove('hidden');
+                    }
+                  }
+
+                  startHeartbeat();
+
+                  document.getElementById('app-sidebar').classList.remove('hidden');
+                  document.getElementById('app-sidebar').classList.add('sm:flex');
+                  document.getElementById('mobile-fab').classList.remove('hidden');
+                  
+                  let startPage = localStorage.getItem('tm_last_page') || 'Dashboard';
+                  
+                  if (startPage === 'Settings' && userTier >= 3) startPage = 'Dashboard';
+                  if (!document.getElementById('view-' + startPage)) startPage = 'Dashboard';
+                  
+                  loadPage(startPage);
+
+                  if (startPage === 'Dashboard' && window.Dashboard) window.Dashboard.init();
+                  if (startPage === 'Settings' && window.SettingsPage) window.SettingsPage.init();
+                  if (startPage === 'Analytics' && window.Analytics) window.Analytics.init();
+                  if (startPage === 'ShiftReport' && window.ShiftReport) window.ShiftReport.init();
+                  
+                  setTimeout(() => window.hideLoader(), 300);
+                }
+              })
+              .API_getConfig();
+          } else {
+            if (response.expired) toastError("Session expired. Please log in again.");
+            loadPage('Login');
+            setTimeout(() => window.hideLoader(), 300);
+          }
+        })
+        .API_checkCurrentSession();
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<div id="calendar-modal-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden flex items-center justify-center backdrop-blur-sm transition-opacity">
+  <div class="bg-[#F8F9FB] rounded-3xl shadow-2xl w-full max-w-6xl mx-4 flex flex-col max-h-[95vh] overflow-hidden transform scale-95 transition-transform duration-200" id="calendar-modal-content">
+    
+    <div class="px-6 py-5 border-b border-gray-200 flex justify-between items-center bg-white z-20">
+      <h3 id="modal-calendar-month-year" class="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+        <svg class="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        Month Year
+      </h3>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-xl shadow-inner">
+          <button onclick="window.CalendarModal.changeMonth(-1)" class="p-2 text-gray-500 hover:text-teal-600 hover:bg-white rounded-lg transition focus:outline-none" title="Previous Month">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+          </button>
+          <button onclick="window.CalendarModal.changeMonth(0)" class="px-4 py-2 text-sm font-bold text-gray-600 bg-white shadow-sm rounded-lg hover:text-teal-600 transition focus:outline-none">Today</button>
+          <button onclick="window.CalendarModal.changeMonth(1)" class="p-2 text-gray-500 hover:text-teal-600 hover:bg-white rounded-lg transition focus:outline-none" title="Next Month">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </button>
+        </div>
+        <button onclick="window.CalendarModal.close()" class="text-gray-400 hover:text-gray-600 transition p-1.5 rounded-full hover:bg-gray-100 focus:outline-none border border-transparent hover:border-gray-200">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+    </div>
+    
+    <div class="flex-1 overflow-y-auto p-6">
+      <div class="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+        <div class="bg-white p-3 text-center text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Sun</div>
+        <div class="bg-white p-3 text-center text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Mon</div>
+        <div class="bg-white p-3 text-center text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Tue</div>
+        <div class="bg-white p-3 text-center text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Wed</div>
+        <div class="bg-white p-3 text-center text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Thu</div>
+        <div class="bg-white p-3 text-center text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Fri</div>
+        <div class="bg-white p-3 text-center text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Sat</div>
+        <div id="modal-calendar-days-grid" class="contents"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="day-view-modal-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-[60] hidden flex items-center justify-center backdrop-blur-sm transition-opacity">
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 flex flex-col max-h-[80vh] overflow-hidden transform scale-95 transition-transform duration-200" id="day-view-modal-content">
+    <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+      <h3 id="day-view-title-text" class="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
+        Date
+      </h3>
+      <button onclick="window.CalendarModal.closeDayView()" class="text-gray-400 hover:text-gray-600 bg-white hover:bg-gray-100 p-1.5 rounded-full transition focus:outline-none shadow-sm border border-gray-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+    <div id="day-view-list" class="flex-1 overflow-y-auto p-6 space-y-2 bg-gray-50/30">
+      </div>
+  </div>
+</div>
+
+<script>
+window.CalendarModal = {
+  currentDate: new Date(),
+  tasksByDate: {}, 
+
+  open() {
+    this.currentDate = new Date();
+    document.getElementById('calendar-modal-overlay').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('calendar-modal-content').classList.remove('scale-95');
+      document.getElementById('calendar-modal-content').classList.add('scale-100');
+    }, 10);
+    this.render();
+  },
+
+  close() {
+    document.getElementById('calendar-modal-content').classList.remove('scale-100');
+    document.getElementById('calendar-modal-content').classList.add('scale-95');
+    setTimeout(() => { document.getElementById('calendar-modal-overlay').classList.add('hidden'); }, 150);
+  },
+
+  changeMonth(offset) {
+    if (offset === 0) {
+      this.currentDate = new Date();
+    } else {
+      const d = this.currentDate;
+      d.setMonth(d.getMonth() + offset);
+      this.currentDate = new Date(d.getTime());
+    }
+    this.render();
+  },
+
+  render() {
+    const grid = document.getElementById('modal-calendar-days-grid');
+    const header = document.getElementById('modal-calendar-month-year');
+    if (!grid || !header) return;
+
+    grid.innerHTML = '';
+    
+    const year = this.currentDate.getFullYear();
+    const month = this.currentDate.getMonth();
+    header.textContent = this.currentDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+    const filteredTasks = window.Dashboard.getFilteredTasks ? window.Dashboard.getFilteredTasks() : [];
+
+    const tasksByDate = {};
+    filteredTasks.forEach(task => {
+      let dateStr = null;
+      if (task.deadline) {
+        dateStr = task.deadline.split('T')[0];
+      } else if (task.title && /^\d{4}_\d{2}_\d{2}/.test(task.title)) {
+        dateStr = task.title.substring(0, 10).replace(/_/g, '-');
+      }
+      
+      if (dateStr) {
+        if (!tasksByDate[dateStr]) tasksByDate[dateStr] = [];
+        tasksByDate[dateStr].push(task);
+      }
+    });
+    
+    this.tasksByDate = tasksByDate; 
+
+    const firstDayIndex = new Date(year, month, 1).getDay(); 
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < firstDayIndex; i++) {
+      grid.innerHTML += `<div class="bg-gray-50 min-h-[140px] p-2 border-b border-r border-gray-100"></div>`;
+    }
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      const currentDayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+      const isToday = currentDayStr === todayStr;
+      
+      const dayTasks = tasksByDate[currentDayStr] || [];
+      let tasksHtml = '';
+      
+      const MAX_TASKS = 3;
+      const visibleTasks = dayTasks.slice(0, MAX_TASKS);
+      const hiddenCount = dayTasks.length - MAX_TASKS;
+      
+      visibleTasks.forEach(task => {
+        let colorClass = 'bg-gray-100 text-gray-700 border-gray-200';
+        if (task.status === 'Completed' || task.status === 'Done') {
+          colorClass = 'bg-green-50 text-green-700 border-green-200 line-through opacity-70';
+        } else if (task.priority === 'High') {
+          colorClass = 'bg-red-50 text-red-700 border-red-200 font-bold';
+        } else if (task.priority === 'Medium') {
+          colorClass = 'bg-blue-50 text-blue-700 border-blue-200';
+        }
+        
+        tasksHtml += `
+          <div onclick="window.CalendarModal.close(); if(window.ViewTaskModal) window.ViewTaskModal.open('${task.id}')" 
+               class="text-[10px] truncate px-2 py-1 mb-1 rounded flex-shrink-0 border shadow-sm cursor-pointer hover:shadow-md transition-shadow ${colorClass}" title="${task.title}">
+            ${task.title}
+          </div>
+        `;
+      });
+      
+      if (hiddenCount > 0) {
+        tasksHtml += `<button onclick="window.CalendarModal.openDayView('${currentDayStr}')" class="w-full mt-1 py-1 bg-gray-100 hover:bg-teal-50 text-teal-600 text-[10px] font-black rounded flex-shrink-0 transition-colors focus:outline-none">+${hiddenCount} more</button>`;
+      }
+
+      grid.innerHTML += `
+        <div class="bg-white min-h-[140px] overflow-hidden p-2 flex flex-col group transition-colors hover:bg-teal-50/30 border-b border-r border-gray-100 relative">
+          <div class="text-right mb-1 flex-shrink-0">
+            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-black ${isToday ? 'bg-teal-500 text-white shadow-md' : 'text-gray-400 group-hover:text-teal-600'}">${i}</span>
+          </div>
+          <div class="flex-1 flex flex-col space-y-0.5 overflow-hidden">
+            ${tasksHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    const totalCells = firstDayIndex + daysInMonth;
+    const trailingBlanks = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    for (let i = 0; i < trailingBlanks; i++) {
+      grid.innerHTML += `<div class="bg-gray-50 min-h-[140px] p-2 border-b border-r border-gray-100 overflow-hidden"></div>`;
+    }
+  },
+
+  openDayView(dateStr) {
+    const tasks = this.tasksByDate[dateStr] || [];
+    const list = document.getElementById('day-view-list');
+    const title = document.getElementById('day-view-title-text');
+    
+    const [y, m, d] = dateStr.split('-');
+    const dateObj = new Date(y, m - 1, d);
+    const formattedDate = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' });
+    
+    title.innerHTML = `
+      <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+      ${formattedDate}
+    `;
+    
+    list.innerHTML = '';
+    tasks.forEach(task => {
+      let colorClass = 'bg-white border-gray-200 text-gray-700';
+      let badgeHtml = '';
+      
+      if (task.status === 'Completed' || task.status === 'Done') {
+        colorClass = 'bg-green-50 border-green-200 opacity-75 line-through text-green-800';
+      } else if (task.priority === 'High') {
+        colorClass = 'bg-red-50 border-red-200 font-bold text-red-900';
+        badgeHtml = `<span class="px-1.5 py-0.5 bg-red-100 text-red-600 rounded text-[8px] uppercase font-black ml-2">High</span>`;
+      } else if (task.priority === 'Medium') {
+        colorClass = 'bg-blue-50 border-blue-200 text-blue-900';
+        badgeHtml = `<span class="px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded text-[8px] uppercase font-black ml-2">Med</span>`;
+      }
+
+      list.innerHTML += `
+        <div onclick="window.CalendarModal.closeDayView(); window.CalendarModal.close(); if(window.ViewTaskModal) window.ViewTaskModal.open('${task.id}')" 
+             class="p-4 mb-3 rounded-2xl border shadow-sm cursor-pointer hover:shadow-md transition-shadow flex flex-col gap-1.5 ${colorClass}">
+          <div class="flex justify-between items-start">
+            <span class="text-sm font-black truncate">${task.title}</span>
+            ${badgeHtml}
+          </div>
+          <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">${task.taskType}</span>
+        </div>
+      `;
+    });
+
+    document.getElementById('day-view-modal-overlay').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('day-view-modal-content').classList.remove('scale-95');
+      document.getElementById('day-view-modal-content').classList.add('scale-100');
+    }, 10);
+  },
+
+  closeDayView() {
+    document.getElementById('day-view-modal-content').classList.remove('scale-100');
+    document.getElementById('day-view-modal-content').classList.add('scale-95');
+    setTimeout(() => { document.getElementById('day-view-modal-overlay').classList.add('hidden'); }, 150);
+  }
+};
+</script>

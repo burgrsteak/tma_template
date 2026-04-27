@@ -1,0 +1,127 @@
+<div id="activity-modal-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden flex items-center justify-center backdrop-blur-sm transition-opacity">
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 flex flex-col max-h-[85vh] overflow-hidden transform scale-95 transition-transform duration-200" id="activity-modal-content">
+    <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/80 backdrop-blur-md z-20">
+      <h3 class="text-xs font-black uppercase tracking-widest text-gray-800 flex items-center gap-2">
+        <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        Activity Feed
+      </h3>
+      <div class="flex items-center gap-2">
+        <button onclick="window.ActivityModal.fetchActivity()" class="text-gray-400 hover:text-purple-600 transition p-1.5 rounded-full hover:bg-white border border-transparent hover:border-gray-200 shadow-sm focus:outline-none" title="Refresh Feed">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        </button>
+        <button onclick="window.ActivityModal.close()" class="text-gray-400 hover:text-gray-600 transition p-1.5 rounded-full hover:bg-gray-100 focus:outline-none border border-transparent hover:border-gray-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+    </div>
+    <div id="activity-modal-loading" class="flex-1 flex flex-col justify-center items-center py-20 hidden">
+       <div class="animate-spin rounded-full h-8 w-8 border-b-4 border-purple-600 mb-4"></div>
+    </div>
+    <div id="activity-modal-list" class="flex-1 overflow-y-auto p-6 space-y-3 bg-gray-50/30 relative hidden">
+       </div>
+  </div>
+</div>
+
+<script>
+window.ActivityModal = {
+  open() {
+    document.getElementById('activity-modal-overlay').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('activity-modal-content').classList.remove('scale-95');
+      document.getElementById('activity-modal-content').classList.add('scale-100');
+    }, 10);
+    this.fetchActivity();
+  },
+
+  close() {
+    document.getElementById('activity-modal-content').classList.remove('scale-100');
+    document.getElementById('activity-modal-content').classList.add('scale-95');
+    setTimeout(() => { document.getElementById('activity-modal-overlay').classList.add('hidden'); }, 150);
+  },
+
+  timeAgo(dateInput) {
+    const now = new Date();
+    const past = new Date(dateInput);
+    const diffMs = now - past;
+    const diffMins = Math.round(diffMs / 60000);
+    const diffHrs = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHrs / 24);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return past.toLocaleDateString([], {month: 'short', day: 'numeric'});
+  },
+
+  fetchActivity() {
+    const list = document.getElementById('activity-modal-list');
+    const loader = document.getElementById('activity-modal-loading');
+    
+    list.classList.add('hidden');
+    loader.classList.remove('hidden');
+    
+    google.script.run
+      .withSuccessHandler(res => {
+        const response = JSON.parse(res);
+        if(response.success) {
+          this.renderActivityLog(response.data);
+        } else {
+          console.error("Activity Load Error:", response.error);
+        }
+      })
+      .API_getRecentActivity();
+  },
+
+  renderActivityLog(activities) {
+    const list = document.getElementById('activity-modal-list');
+    const loader = document.getElementById('activity-modal-loading');
+    list.innerHTML = '';
+    
+    if(!activities || activities.length === 0) {
+       list.innerHTML = `<div class="text-sm text-gray-400 text-center mt-10 font-medium">No recent activity</div>`;
+    } else {
+       activities.forEach(act => {
+          const isSystem = act.isSystem;
+          const isAlert = act.message.includes('🚨 **SYSTEM ALERT:**');
+          
+          let iconHtml = '';
+          if (isAlert) {
+             iconHtml = `<div class="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>`;
+          } else if (isSystem) {
+             iconHtml = `<div class="w-8 h-8 rounded-full bg-blue-50 text-blue-500 border border-blue-100 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></div>`;
+          } else {
+             iconHtml = `<div class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 border border-gray-200 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg></div>`;
+          }
+
+          let formattedMsg = act.message.replace(/\*\*(.*?)\*\*/g, '<strong class="font-black text-gray-800">$1</strong>');
+          if(isAlert) formattedMsg = `<span class="text-red-700 font-bold">${formattedMsg}</span>`;
+
+          const div = document.createElement('div');
+          div.className = `flex gap-4 hover:bg-gray-50 p-4 rounded-2xl border border-gray-100 cursor-pointer transition-colors shadow-sm ${isAlert ? 'bg-red-50/30' : ''}`;
+          div.onclick = () => { 
+            this.close();
+            if(window.ViewTaskModal) window.ViewTaskModal.open(act.taskId); 
+          };
+          
+          div.innerHTML = `
+            ${iconHtml}
+            <div class="flex-1 min-w-0">
+               <div class="flex justify-between items-baseline gap-2 mb-1">
+                 <span class="text-sm font-black ${isAlert ? 'text-red-800' : 'text-gray-900'} truncate">${act.user}</span>
+                 <span class="text-[10px] font-bold text-gray-400 whitespace-nowrap uppercase tracking-widest">${this.timeAgo(act.timestamp)}</span>
+               </div>
+               <p class="text-sm text-gray-600 leading-snug break-words">${formattedMsg}</p>
+               <div class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2 truncate bg-blue-50 px-2 py-1 rounded w-max max-w-full">Ref: ${act.taskTitle}</div>
+            </div>
+          `;
+          list.appendChild(div);
+       });
+    }
+    
+    loader.classList.add('hidden');
+    list.classList.remove('hidden');
+  }
+};
+</script>
