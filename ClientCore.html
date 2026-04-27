@@ -2,6 +2,9 @@
 /**
  * Safely handles page navigation by showing/hiding pre-loaded containers.
  */
+
+let _lastPage = null;
+
 function loadPage(pageName) {
   // 1. Hide all views
   const views = document.querySelectorAll('.view-section');
@@ -15,7 +18,8 @@ function loadPage(pageName) {
     // 3. --- NEW: Break out of the iframe and update the REAL URL! ---
     if (pageName !== 'Login') {
       google.script.history.replace(null, null, pageName); 
-      localStorage.setItem('tm_last_page', pageName); // Keep this as a backup
+      // localStorage.setItem('tm_last_page', pageName); // Keep this as a backup
+      _lastPage = pageName;
     } else {
       google.script.history.replace(null, null, ''); // Clear hash on login screen
     }
