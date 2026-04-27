@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>Task Manager</title>
+
+  <!-- Configure Tailwind BEFORE loading it so dark: classes use .dark-mode selector -->
+  <script>
+    tailwind.config = {
+      darkMode: ['selector', '.dark-mode'],
+    };
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <?!= include('ClientCore'); ?>
 
@@ -10,7 +17,8 @@
     /* ==================================================================
        THEME SYSTEM
        Default (no class) = LIGHT MODE
-       body.dark-mode     = DARK MODE  (the dark design you love)
+       body.dark-mode     = DARK MODE
+       Tailwind dark: prefix now also uses .dark-mode (selector strategy)
        ================================================================== */
 
     /* ── LIGHT MODE (default) ────────────────────────────────────────── */
@@ -81,7 +89,6 @@
     #app-sidebar .user-role-text {
       color: var(--sidebar-text-muted) !important;
     }
-    /* Dev menu select in sidebar */
     #dev-role-select {
       background-color: var(--sidebar-hover-bg) !important;
       border-color: var(--sidebar-border) !important;
@@ -147,10 +154,10 @@
     body.dark-mode .text-purple-500, body.dark-mode .text-purple-600 { color: #D8B4FE !important; }
     body.dark-mode .text-teal-500, body.dark-mode .text-teal-600 { color: #5EEAD4 !important; }
 
-    body.dark-mode .bg-blue-50,   body.dark-mode .bg-blue-100   { background-color: rgba(59,130,246,0.15) !important; border: 1px solid rgba(59,130,246,0.3) !important; }
-    body.dark-mode .bg-red-50,    body.dark-mode .bg-red-100    { background-color: rgba(239,68,68,0.15) !important;  border: 1px solid rgba(239,68,68,0.3) !important; }
-    body.dark-mode .bg-green-50,  body.dark-mode .bg-green-100  { background-color: rgba(16,185,129,0.15) !important; border: 1px solid rgba(16,185,129,0.3) !important; }
-    body.dark-mode .bg-orange-50, body.dark-mode .bg-orange-100 { background-color: rgba(249,115,22,0.15) !important; border: 1px solid rgba(249,115,22,0.3) !important; }
+    body.dark-mode .bg-blue-50,   body.dark-mode .bg-blue-100   { background-color: rgba(59,130,246,0.15) !important;  border: 1px solid rgba(59,130,246,0.3) !important; }
+    body.dark-mode .bg-red-50,    body.dark-mode .bg-red-100    { background-color: rgba(239,68,68,0.15) !important;   border: 1px solid rgba(239,68,68,0.3) !important; }
+    body.dark-mode .bg-green-50,  body.dark-mode .bg-green-100  { background-color: rgba(16,185,129,0.15) !important;  border: 1px solid rgba(16,185,129,0.3) !important; }
+    body.dark-mode .bg-orange-50, body.dark-mode .bg-orange-100 { background-color: rgba(249,115,22,0.15) !important;  border: 1px solid rgba(249,115,22,0.3) !important; }
     body.dark-mode .bg-purple-50, body.dark-mode .bg-purple-100 { background-color: rgba(168,85,247,0.15) !important;  border: 1px solid rgba(168,85,247,0.3) !important; }
     body.dark-mode .bg-teal-50,   body.dark-mode .bg-teal-100   { background-color: rgba(20,184,166,0.15) !important;  border: 1px solid rgba(20,184,166,0.3) !important; }
 
@@ -162,7 +169,6 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
     }
 
-    /* Global loader box uses surface colour */
     body.dark-mode #global-loader > div {
       background-color: #1c1c1c !important;
     }
@@ -188,6 +194,7 @@
   </style>
 
   <script>
+    // Must be defined before DOMContentLoaded so inline onclick="toggleDarkMode()" works
     function toggleDarkMode() {
       const isDark = document.body.classList.toggle('dark-mode');
       localStorage.setItem('tm_dark_mode', isDark);
@@ -199,6 +206,9 @@
     };
 
     window.addEventListener('DOMContentLoaded', () => {
+      // Strip any stray 'dark' class from <html> — only body.dark-mode is the source of truth
+      document.documentElement.classList.remove('dark');
+
       if (localStorage.getItem('tm_dark_mode') === 'true') {
         document.body.classList.add('dark-mode');
       }
