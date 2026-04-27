@@ -98,24 +98,34 @@ window.DailyRoutine = {
 
     const myRole = (window.CurrentUser.role || '').toLowerCase();
     const sundayDate = this.getSunday(todayDate);
-    
+
+    // FIX #1: Added Fortnightly prefix & boundary
+    const fortnight = todayDate.getDate() <= 15 ? 'F1' : 'F2';
+
     const prefixes = {
       'Daily': this.formatDate(todayDate),
       'Weekly': `Week ${this.formatDate(sundayDate)}`,
+      'Fortnightly': `Fortnight ${yyyy}_${mm}_${fortnight}`,
       'Monthly': `Month ${yyyy}_${mm}`,
       'Quarterly': `Q${Math.floor(todayDate.getMonth() / 3) + 1}_${yyyy}`,
       'Annually': `Year_${yyyy}`
     };
 
+    const fortnightStart = todayDate.getDate() <= 15
+      ? new Date(parseInt(yyyy), todayDate.getMonth(), 1)
+      : new Date(parseInt(yyyy), todayDate.getMonth(), 16);
+
     const boundaries = {
-      'Daily': new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()), 
-      'Weekly': new Date(sundayDate.getFullYear(), sundayDate.getMonth(), sundayDate.getDate()), 
-      'Monthly': new Date(yyyy, todayDate.getMonth(), 1), 
-      'Quarterly': new Date(yyyy, Math.floor(todayDate.getMonth() / 3) * 3, 1), 
-      'Annually': new Date(yyyy, 0, 1) 
+      'Daily': new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()),
+      'Weekly': new Date(sundayDate.getFullYear(), sundayDate.getMonth(), sundayDate.getDate()),
+      'Fortnightly': fortnightStart,
+      'Monthly': new Date(parseInt(yyyy), todayDate.getMonth(), 1),
+      'Quarterly': new Date(parseInt(yyyy), Math.floor(todayDate.getMonth() / 3) * 3, 1),
+      'Annually': new Date(parseInt(yyyy), 0, 1)
     };
 
     window.AppConfig.taskTypes.forEach(type => {
+      // FIX (from previous): safe allowedRoles check
       const allowed = Array.isArray(type.allowedRoles)
         ? type.allowedRoles.map(r => r.toLowerCase())
         : [];
@@ -186,9 +196,11 @@ window.DailyRoutine = {
   buildStatsBadges(statsObj, freqContext) {
     const keys = Object.keys(statsObj);
     
+    // FIX #4: Added Fortnightly label
     let timeText = "This Month";
     if (freqContext === 'Daily') timeText = "Today";
     else if (freqContext === 'Weekly') timeText = "This Week";
+    else if (freqContext === 'Fortnightly') timeText = "This Fortnight";
     else if (freqContext === 'Quarterly') timeText = "This Quarter";
     else if (freqContext === 'Annually') timeText = "This Year";
 
@@ -242,8 +254,9 @@ window.DailyRoutine = {
     }
   },
 
+  // FIX #3: Added Fortnightly to sort order
   sortFrequencies(keys) {
-    const order = ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'];
+    const order = ['Daily', 'Weekly', 'Fortnightly', 'Monthly', 'Quarterly', 'Annually'];
     return keys.sort((a, b) => {
       let iA = order.indexOf(a);
       let iB = order.indexOf(b);
@@ -292,6 +305,8 @@ window.DailyRoutine = {
       
       this.groupedPending[freq].forEach((task, index) => {
         const statsBadges = this.buildStatsBadges(task.stats, task.freqContext);
+        // FIX #2: Normalize "None" priority for display
+        const displayPriority = (task.priority && task.priority !== 'None') ? task.priority : 'Medium';
         
         groupsHTML += `
           <label class="flex items-start gap-4 p-4 bg-white border border-gray-200 rounded-xl cursor-pointer hover:border-blue-500 hover:shadow-md transition group">
@@ -299,7 +314,7 @@ window.DailyRoutine = {
             <div class="flex-1 min-w-0">
               <div class="text-sm font-black text-gray-900 group-hover:text-blue-700 transition-colors leading-tight truncate">${task.displayName}</div>
               <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1.5 mb-3 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full ${task.priority === 'High' ? 'bg-red-500' : 'bg-blue-400'}"></span> ${task.priority} Priority
+                <span class="w-1.5 h-1.5 rounded-full ${displayPriority === 'High' ? 'bg-red-500' : 'bg-blue-400'}"></span> ${displayPriority} Priority
               </div>
               <div class="flex flex-wrap gap-1.5 border-t border-gray-50 pt-2.5 mt-2">
                 ${statsBadges}
@@ -437,7 +452,6 @@ window.DailyRoutine = {
         const chk = document.getElementById(`routine-chk-${safeFreq}-${index}`);
         if (chk && chk.checked) {
           
-          // --- FULLY FIXED: SLA Dynamic Calculation ---
           const typeObj = window.AppConfig.taskTypes.find(t => t.label === task.category);
           let subType = 'N/A';
           let dlIso = null;
@@ -451,18 +465,18 @@ window.DailyRoutine = {
             if (window.AppConfig && window.AppConfig.timers && window.AppConfig.timers[priorityKey] !== undefined) {
                slaHours = parseInt(window.AppConfig.timers[priorityKey]);
             }
-            if(isNaN(slaHours) || slaHours === 0) slaHours = 24;
+            if (isNaN(slaHours) || slaHours === 0) slaHours = 24;
 
             dlIso = new Date(now.getTime() + (slaHours * 60 * 60 * 1000)).toISOString();
           }
-          // --------------------------------------------
 
           payloads.push({
             title: task.fullTitle,
             description: `📋 **Auto-generated ${freq} Routine Task.**`,
             taskType: task.category,
             subType: subType, 
-            priority: task.priority,
+            // FIX #2: Fallback "None" priority to "Medium" before sending to backend
+            priority: (task.priority && task.priority !== 'None') ? task.priority : 'Medium',
             deadline: dlIso, 
             assignedTo: window.CurrentUser.email,
             status: 'New' 
@@ -473,7 +487,6 @@ window.DailyRoutine = {
 
     if (payloads.length === 0) return; 
 
-    // Lock UI and show progress
     btn.disabled = true;
     overlay.classList.remove('hidden');
     overlay.classList.add('flex');
@@ -500,7 +513,6 @@ window.DailyRoutine = {
     } catch (err) {
       if (typeof toastError === "function") toastError("Error generating tasks: " + err.message);
       
-      // Unlock UI on error so they can try again or close
       btn.disabled = false;
       overlay.classList.add('hidden');
       overlay.classList.remove('flex');
