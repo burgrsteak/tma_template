@@ -116,8 +116,9 @@ window.DailyRoutine = {
     };
 
     window.AppConfig.taskTypes.forEach(type => {
-      if (!type.allowedRoles) return;
-      const allowed = type.allowedRoles.map(r => r.toLowerCase());
+      const allowed = Array.isArray(type.allowedRoles)
+        ? type.allowedRoles.map(r => r.toLowerCase())
+        : [];
       if (allowed.length > 0 && !allowed.includes(myRole)) return;
       
       if (!type.frequency || type.frequency === 'Ad-hoc') return;
