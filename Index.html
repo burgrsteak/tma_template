@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <title>Task Manager</title>
 
-  <!-- Configure Tailwind BEFORE loading it so dark: classes use .dark-mode selector -->
+  <!-- Load Tailwind CDN FIRST, then configure it -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Configure Tailwind dark mode to use body.dark-mode selector -->
   <script>
     tailwind.config = {
       darkMode: ['selector', '.dark-mode'],
     };
   </script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <?!= include('ClientCore'); ?>
 
   <style>
