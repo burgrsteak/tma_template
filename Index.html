@@ -195,7 +195,6 @@
   </style>
 
   <script>
-    // Must be defined before DOMContentLoaded so inline onclick="toggleDarkMode()" works
     function toggleDarkMode() {
       const isDark = document.body.classList.toggle('dark-mode');
       localStorage.setItem('tm_dark_mode', isDark);
@@ -207,9 +206,7 @@
     };
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Strip any stray 'dark' class from <html> — only body.dark-mode is the source of truth
       document.documentElement.classList.remove('dark');
-
       if (localStorage.getItem('tm_dark_mode') === 'true') {
         document.body.classList.add('dark-mode');
       }
@@ -275,11 +272,9 @@
       <!-- Theme toggle -->
       <button onclick="toggleDarkMode()" title="Toggle Theme" class="w-full flex items-center h-12 transition focus:outline-none mb-1">
         <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
-          <!-- Sun icon — shown in light mode -->
           <svg class="theme-icon-light w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
           </svg>
-          <!-- Moon icon — shown in dark mode -->
           <svg class="theme-icon-dark w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
           </svg>
@@ -356,12 +351,108 @@
     window.AppConfig = null;
     window.CurrentUser = null;
 
+    /**
+     * Core app bootstrap — runs on first load AND after a dev role switch.
+     * Never calls location.reload() because that navigates the GAS iframe to
+     * about:blank, causing the blank-page bug.
+     */
+    function bootstrapApp() {
+      window.showLoader('Initializing App...');
+
+      google.script.run
+        .withSuccessHandler(res => {
+          const response = JSON.parse(res);
+          if (response.active) {
+            window.CurrentUser = response.user;
+            google.script.run
+              .withSuccessHandler(configRes => {
+                const conf = JSON.parse(configRes);
+                if (conf.success) {
+                  window.AppConfig = conf.data;
+                  updateSidebarUser(window.CurrentUser);
+
+                  const appTitle = document.getElementById('sidebar-app-name');
+                  if (appTitle && window.AppConfig.appName) {
+                    appTitle.textContent = window.AppConfig.appName;
+                    document.title = window.AppConfig.appName;
+                  }
+
+                  const defaultTiers = { "0": ["SDL","Dev"], "1": ["TL","OM","Ops Lead"], "2": ["SME","QA"], "3": ["Agent"] };
+                  const activeTiers = window.AppConfig.roleTiers || defaultTiers;
+                  let userTier = 3;
+                  for (const [tierLvl, rolesArray] of Object.entries(activeTiers)) {
+                    if (rolesArray.some(r => r.toLowerCase() === (window.CurrentUser.role || '').toLowerCase())) {
+                      userTier = parseInt(tierLvl); break;
+                    }
+                  }
+                  window.CurrentUser.tier = userTier;
+
+                  if (userTier === 0) localStorage.setItem('tm_is_dev', 'true');
+
+                  if (localStorage.getItem('tm_is_dev') === 'true') {
+                    const devContainer = document.getElementById('dev-switcher-container');
+                    const devSelect = document.getElementById('dev-role-select');
+                    if (devContainer && devSelect) {
+                      devContainer.classList.remove('hidden');
+                      devSelect.innerHTML = '<option value="">-- Test As --</option><option value="Dev" class="font-bold text-blue-400">Restore to Dev</option>';
+                      const allRoles = window.AppConfig.roles || ['Agent','TL','SME','QA','SDL','Dev','OM','Ops Lead'];
+                      allRoles.forEach(r => devSelect.innerHTML += `<option value="${r}">${r}</option>`);
+                    }
+                  }
+
+                  const settingsNav = document.getElementById('nav-Settings');
+                  if (settingsNav) {
+                    if (userTier >= 3) settingsNav.classList.add('hidden');
+                    else settingsNav.classList.remove('hidden');
+                  }
+
+                  // Stop any previous heartbeat before starting a new one
+                  if (window.heartbeatInterval) clearInterval(window.heartbeatInterval);
+                  startHeartbeat();
+
+                  document.getElementById('app-sidebar').classList.remove('hidden');
+                  document.getElementById('app-sidebar').classList.add('sm:flex');
+                  document.getElementById('mobile-fab').classList.remove('hidden');
+
+                  let startPage = localStorage.getItem('tm_last_page') || 'Dashboard';
+                  if (startPage === 'Settings' && userTier >= 3) startPage = 'Dashboard';
+                  if (!document.getElementById('view-' + startPage)) startPage = 'Dashboard';
+                  loadPage(startPage);
+
+                  if (startPage === 'Dashboard'   && window.Dashboard)   window.Dashboard.init();
+                  if (startPage === 'Settings'    && window.SettingsPage) window.SettingsPage.init();
+                  if (startPage === 'Analytics'   && window.Analytics)   window.Analytics.init();
+                  if (startPage === 'ShiftReport' && window.ShiftReport) window.ShiftReport.init();
+
+                  setTimeout(() => window.hideLoader(), 300);
+                }
+              })
+              .API_getConfig();
+          } else {
+            if (response.expired) toastError('Session expired. Please log in again.');
+            loadPage('Login');
+            setTimeout(() => window.hideLoader(), 300);
+          }
+        })
+        .API_checkCurrentSession();
+    }
+
     window.changeDevRole = function(newRole) {
       if (!newRole) return;
       window.showLoader(`Switching to ${newRole}...`);
       google.script.run
-        .withSuccessHandler(res => { showToast(`Role switched! Reloading...`, 'success'); setTimeout(() => location.reload(), 1000); })
-        .withFailureHandler(err => { toastError(err.message); window.hideLoader(); })
+        .withSuccessHandler(() => {
+          // Reset dev select to placeholder so it doesn't look "stuck"
+          const devSelect = document.getElementById('dev-role-select');
+          if (devSelect) devSelect.value = '';
+          showToast(`Switched to ${newRole}. Re-initializing...`, 'success');
+          // Re-run full bootstrap in-place — NO location.reload()
+          bootstrapApp();
+        })
+        .withFailureHandler(err => {
+          toastError(err.message);
+          window.hideLoader();
+        })
         .API_devSwitchRole(newRole);
     };
 
@@ -475,82 +566,8 @@
       }, 15000);
     }
 
-    window.onload = () => {
-      google.script.run
-        .withSuccessHandler(res => {
-          const response = JSON.parse(res);
-          if (response.active) {
-            window.CurrentUser = response.user;
-            google.script.run
-              .withSuccessHandler(configRes => {
-                const conf = JSON.parse(configRes);
-                if (conf.success) {
-                  window.AppConfig = conf.data;
-                  updateSidebarUser(window.CurrentUser);
-
-                  const appTitle = document.getElementById('sidebar-app-name');
-                  if (appTitle && window.AppConfig.appName) {
-                    appTitle.textContent = window.AppConfig.appName;
-                    document.title = window.AppConfig.appName;
-                  }
-
-                  const defaultTiers = { "0": ["SDL","Dev"], "1": ["TL","OM","Ops Lead"], "2": ["SME","QA"], "3": ["Agent"] };
-                  const activeTiers = window.AppConfig.roleTiers || defaultTiers;
-                  let userTier = 3;
-                  for (const [tierLvl, rolesArray] of Object.entries(activeTiers)) {
-                    if (rolesArray.some(r => r.toLowerCase() === (window.CurrentUser.role || '').toLowerCase())) {
-                      userTier = parseInt(tierLvl); break;
-                    }
-                  }
-                  window.CurrentUser.tier = userTier;
-
-                  if (userTier === 0) localStorage.setItem('tm_is_dev', 'true');
-
-                  if (localStorage.getItem('tm_is_dev') === 'true') {
-                    const devContainer = document.getElementById('dev-switcher-container');
-                    const devSelect = document.getElementById('dev-role-select');
-                    if (devContainer && devSelect) {
-                      devContainer.classList.remove('hidden');
-                      devSelect.innerHTML = '<option value="">-- Test As --</option><option value="Dev" class="font-bold text-blue-400">Restore to Dev</option>';
-                      const allRoles = window.AppConfig.roles || ['Agent','TL','SME','QA','SDL','Dev','OM','Ops Lead'];
-                      allRoles.forEach(r => devSelect.innerHTML += `<option value="${r}">${r}</option>`);
-                    }
-                  }
-
-                  const settingsNav = document.getElementById('nav-Settings');
-                  if (settingsNav) {
-                    if (userTier >= 3) settingsNav.classList.add('hidden');
-                    else settingsNav.classList.remove('hidden');
-                  }
-
-                  startHeartbeat();
-
-                  document.getElementById('app-sidebar').classList.remove('hidden');
-                  document.getElementById('app-sidebar').classList.add('sm:flex');
-                  document.getElementById('mobile-fab').classList.remove('hidden');
-
-                  let startPage = localStorage.getItem('tm_last_page') || 'Dashboard';
-                  if (startPage === 'Settings' && userTier >= 3) startPage = 'Dashboard';
-                  if (!document.getElementById('view-' + startPage)) startPage = 'Dashboard';
-                  loadPage(startPage);
-
-                  if (startPage === 'Dashboard'   && window.Dashboard)   window.Dashboard.init();
-                  if (startPage === 'Settings'    && window.SettingsPage) window.SettingsPage.init();
-                  if (startPage === 'Analytics'   && window.Analytics)   window.Analytics.init();
-                  if (startPage === 'ShiftReport' && window.ShiftReport) window.ShiftReport.init();
-
-                  setTimeout(() => window.hideLoader(), 300);
-                }
-              })
-              .API_getConfig();
-          } else {
-            if (response.expired) toastError("Session expired. Please log in again.");
-            loadPage('Login');
-            setTimeout(() => window.hideLoader(), 300);
-          }
-        })
-        .API_checkCurrentSession();
-    };
+    // Kick off the app on first load
+    window.onload = () => bootstrapApp();
   </script>
 </body>
 </html>
