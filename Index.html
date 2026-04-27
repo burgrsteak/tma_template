@@ -8,10 +8,87 @@
 
   <style>
     /* ==================================================================
-       MODERN DARK MODE: Monochromatic Minimalism
-       Applied globally across all pages.
+       THEME SYSTEM
+       Default (no class) = LIGHT MODE
+       body.dark-mode     = DARK MODE  (the dark design you love)
        ================================================================== */
-    
+
+    /* ── LIGHT MODE (default) ────────────────────────────────────────── */
+    :root {
+      --sidebar-bg:        #ffffff;
+      --sidebar-border:    #e5e7eb;
+      --sidebar-text:      #374151;
+      --sidebar-text-muted:#6b7280;
+      --sidebar-hover-bg:  #f3f4f6;
+      --sidebar-hover-text:#111827;
+      --sidebar-active-bg: #eff6ff;
+      --sidebar-active-text:#1d4ed8;
+      --sidebar-footer-bg: #f9fafb;
+      --sidebar-logo-color:#2563eb;
+    }
+
+    /* ── DARK MODE ───────────────────────────────────────────────────── */
+    body.dark-mode {
+      --sidebar-bg:        #111827;
+      --sidebar-border:    #1f2937;
+      --sidebar-text:      #9ca3af;
+      --sidebar-text-muted:#6b7280;
+      --sidebar-hover-bg:  #1f2937;
+      --sidebar-hover-text:#ffffff;
+      --sidebar-active-bg: #1e3a5f;
+      --sidebar-active-text:#93c5fd;
+      --sidebar-footer-bg: rgba(31,41,55,0.3);
+      --sidebar-logo-color:#60a5fa;
+    }
+
+    /* ── Sidebar shell ───────────────────────────────────────────────── */
+    #app-sidebar {
+      background-color: var(--sidebar-bg) !important;
+      border-right: 1px solid var(--sidebar-border);
+      color: var(--sidebar-text);
+      transition: width 0.3s ease, background-color 0.25s ease;
+      overflow-x: hidden;
+    }
+    #app-sidebar .logo-area {
+      border-bottom: 1px solid var(--sidebar-border) !important;
+      color: var(--sidebar-logo-color) !important;
+    }
+    #app-sidebar .nav-link {
+      color: var(--sidebar-text) !important;
+    }
+    #app-sidebar .nav-link:hover {
+      background-color: var(--sidebar-hover-bg) !important;
+      color: var(--sidebar-hover-text) !important;
+    }
+    #app-sidebar .nav-link.active-nav {
+      background-color: var(--sidebar-active-bg) !important;
+      color: var(--sidebar-active-text) !important;
+    }
+    #app-sidebar .sidebar-footer {
+      background-color: var(--sidebar-footer-bg) !important;
+      border-top: 1px solid var(--sidebar-border) !important;
+    }
+    #app-sidebar .sidebar-footer button {
+      color: var(--sidebar-text) !important;
+    }
+    #app-sidebar .sidebar-footer button:hover {
+      background-color: var(--sidebar-hover-bg) !important;
+      color: var(--sidebar-hover-text) !important;
+    }
+    #app-sidebar .user-name-text {
+      color: var(--sidebar-hover-text) !important;
+    }
+    #app-sidebar .user-role-text {
+      color: var(--sidebar-text-muted) !important;
+    }
+    /* Dev menu select in sidebar */
+    #dev-role-select {
+      background-color: var(--sidebar-hover-bg) !important;
+      border-color: var(--sidebar-border) !important;
+      color: var(--sidebar-text) !important;
+    }
+
+    /* ── DARK MODE: page body & content ──────────────────────────────── */
     body.dark-mode,
     body.dark-mode [class*="bg-[#F8F9FB]"],
     body.dark-mode .bg-white {
@@ -33,10 +110,7 @@
 
     body.dark-mode .hover\:bg-gray-50:hover,
     body.dark-mode .hover\:bg-gray-100:hover,
-    body.dark-mode .hover\:bg-gray-200:hover,
-    body.dark-mode button:hover.bg-gray-50,
-    body.dark-mode button:hover.bg-gray-100,
-    body.dark-mode button:hover.bg-gray-200 {
+    body.dark-mode .hover\:bg-gray-200:hover {
       background-color: #888888 !important;
       color: #121212 !important;
     }
@@ -45,8 +119,8 @@
     body.dark-mode .text-gray-800,
     body.dark-mode .text-gray-700,
     body.dark-mode .text-black,
-    body.dark-mode h1, 
-    body.dark-mode h2, 
+    body.dark-mode h1,
+    body.dark-mode h2,
     body.dark-mode h3 {
       color: #E0E0E0 !important;
     }
@@ -73,36 +147,44 @@
     body.dark-mode .text-purple-500, body.dark-mode .text-purple-600 { color: #D8B4FE !important; }
     body.dark-mode .text-teal-500, body.dark-mode .text-teal-600 { color: #5EEAD4 !important; }
 
-    body.dark-mode .bg-blue-50, body.dark-mode .bg-blue-100 { background-color: rgba(59, 130, 246, 0.15) !important; border: 1px solid rgba(59, 130, 246, 0.3) !important; }
-    body.dark-mode .bg-red-50, body.dark-mode .bg-red-100 { background-color: rgba(239, 68, 68, 0.15) !important; border: 1px solid rgba(239, 68, 68, 0.3) !important; }
-    body.dark-mode .bg-green-50, body.dark-mode .bg-green-100 { background-color: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; }
-    body.dark-mode .bg-orange-50, body.dark-mode .bg-orange-100 { background-color: rgba(249, 115, 22, 0.15) !important; border: 1px solid rgba(249, 115, 22, 0.3) !important; }
-    body.dark-mode .bg-purple-50, body.dark-mode .bg-purple-100 { background-color: rgba(168, 85, 247, 0.15) !important; border: 1px solid rgba(168, 85, 247, 0.3) !important; }
-    body.dark-mode .bg-teal-50, body.dark-mode .bg-teal-100 { background-color: rgba(20, 184, 166, 0.15) !important; border: 1px solid rgba(20, 184, 166, 0.3) !important; }
+    body.dark-mode .bg-blue-50,   body.dark-mode .bg-blue-100   { background-color: rgba(59,130,246,0.15) !important; border: 1px solid rgba(59,130,246,0.3) !important; }
+    body.dark-mode .bg-red-50,    body.dark-mode .bg-red-100    { background-color: rgba(239,68,68,0.15) !important;  border: 1px solid rgba(239,68,68,0.3) !important; }
+    body.dark-mode .bg-green-50,  body.dark-mode .bg-green-100  { background-color: rgba(16,185,129,0.15) !important; border: 1px solid rgba(16,185,129,0.3) !important; }
+    body.dark-mode .bg-orange-50, body.dark-mode .bg-orange-100 { background-color: rgba(249,115,22,0.15) !important; border: 1px solid rgba(249,115,22,0.3) !important; }
+    body.dark-mode .bg-purple-50, body.dark-mode .bg-purple-100 { background-color: rgba(168,85,247,0.15) !important;  border: 1px solid rgba(168,85,247,0.3) !important; }
+    body.dark-mode .bg-teal-50,   body.dark-mode .bg-teal-100   { background-color: rgba(20,184,166,0.15) !important;  border: 1px solid rgba(20,184,166,0.3) !important; }
 
     body.dark-mode .modern-select {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23E0E0E0' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E") !important;
     }
 
     body.dark-mode .shadow-sm, body.dark-mode .shadow-md, body.dark-mode .shadow-lg, body.dark-mode .shadow-2xl {
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
     }
 
+    /* Global loader box uses surface colour */
+    body.dark-mode #global-loader > div {
+      background-color: #1c1c1c !important;
+    }
+    body.dark-mode #global-loader-text {
+      color: #E0E0E0 !important;
+    }
+
+    /* ── Scrollbar hide ──────────────────────────────────────────────── */
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* ==================================================================
-       SIDEBAR MINIMIZATION CSS (PERFECTLY CENTERED ICONS)
-       ================================================================== */
-    #app-sidebar { transition: width 0.3s ease; overflow-x: hidden; }
+    /* ── Sidebar collapse ────────────────────────────────────────────── */
     #app-sidebar.sidebar-collapsed { width: 5rem !important; }
-    
-    /* Instantly kill text so it never chops or wraps during animation */
     #app-sidebar.sidebar-collapsed .logo-text,
     #app-sidebar.sidebar-collapsed .nav-text,
-    #app-sidebar.sidebar-collapsed .user-info { 
-        display: none !important; 
-    }
+    #app-sidebar.sidebar-collapsed .user-info { display: none !important; }
+
+    /* ── Theme toggle icon swap ──────────────────────────────────────── */
+    .theme-icon-light { display: block; }
+    .theme-icon-dark  { display: none;  }
+    body.dark-mode .theme-icon-light { display: none;  }
+    body.dark-mode .theme-icon-dark  { display: block; }
   </style>
 
   <script>
@@ -113,9 +195,7 @@
 
     window.toggleSidebar = function() {
       const sidebar = document.getElementById('app-sidebar');
-      if (sidebar) {
-        sidebar.classList.toggle('sidebar-collapsed');
-      }
+      if (sidebar) sidebar.classList.toggle('sidebar-collapsed');
     };
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -127,10 +207,10 @@
 </head>
 
 <body class="bg-gray-50 text-gray-900 antialiased flex h-screen overflow-hidden">
-  
-  <aside id="app-sidebar" class="w-64 bg-gray-900 text-white flex-col hidden transition-all z-20 shadow-lg relative">
-    
-    <div class="h-16 flex items-center border-b border-gray-800 text-blue-400 overflow-hidden w-full whitespace-nowrap">
+
+  <aside id="app-sidebar" class="w-64 flex-col hidden transition-all z-20 shadow-lg relative">
+
+    <div class="logo-area h-16 flex items-center overflow-hidden w-full whitespace-nowrap">
       <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
         <svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -140,28 +220,28 @@
     </div>
 
     <nav class="flex-1 py-4 space-y-2 overflow-y-auto overflow-x-hidden">
-      <a href="#" id="nav-Dashboard" onclick="loadPage('Dashboard')" class="nav-link flex items-center h-12 text-gray-400 transition hover:bg-gray-800 hover:text-white whitespace-nowrap w-full">
+      <a href="#" id="nav-Dashboard" onclick="loadPage('Dashboard')" class="nav-link flex items-center h-12 transition whitespace-nowrap w-full">
         <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
         </div>
         <span class="nav-text font-medium pr-4 truncate block">Dashboard</span>
       </a>
-      
-      <a href="#" id="nav-ShiftReport" onclick="loadPage('ShiftReport')" class="nav-link flex items-center h-12 text-gray-400 transition hover:bg-gray-800 hover:text-white whitespace-nowrap w-full">
+
+      <a href="#" id="nav-ShiftReport" onclick="loadPage('ShiftReport')" class="nav-link flex items-center h-12 transition whitespace-nowrap w-full">
         <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
         </div>
         <span class="nav-text font-medium pr-4 truncate block">Shift Report</span>
       </a>
 
-      <a href="#" id="nav-Analytics" onclick="loadPage('Analytics'); if(window.Analytics) window.Analytics.init();" class="nav-link flex items-center h-12 text-gray-400 transition hover:bg-gray-800 hover:text-white whitespace-nowrap w-full">
+      <a href="#" id="nav-Analytics" onclick="loadPage('Analytics'); if(window.Analytics) window.Analytics.init();" class="nav-link flex items-center h-12 transition whitespace-nowrap w-full">
         <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
         </div>
         <span class="nav-text font-medium pr-4 truncate block">Insights</span>
       </a>
 
-      <a href="#" id="nav-Settings" onclick="loadPage('Settings'); if(window.SettingsPage) window.SettingsPage.init();" class="nav-link flex items-center h-12 text-gray-400 transition hover:bg-gray-800 hover:text-white whitespace-nowrap w-full">
+      <a href="#" id="nav-Settings" onclick="loadPage('Settings'); if(window.SettingsPage) window.SettingsPage.init();" class="nav-link flex items-center h-12 transition whitespace-nowrap w-full">
         <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
         </div>
@@ -169,27 +249,34 @@
       </a>
     </nav>
 
-    <div class="mt-auto border-t border-gray-800 bg-gray-800/30 overflow-hidden w-full whitespace-nowrap pb-2">
-      
+    <div class="sidebar-footer mt-auto overflow-hidden w-full whitespace-nowrap pb-2">
+
       <div class="user-info w-full px-6 py-4 mb-2">
-        <div id="sidebar-user-name" class="text-sm font-bold text-white truncate block w-full">User Name</div>
-        <div id="sidebar-user-role" class="text-[10px] uppercase text-gray-400 tracking-widest block mt-0.5">Role</div>
-      </div>
-      
-      <div id="dev-switcher-container" class="hidden px-6 mb-3 user-info w-full">
-        <div class="text-[9px] uppercase text-blue-400 font-bold mb-1 tracking-widest">Dev Menu</div>
-        <select id="dev-role-select" onchange="changeDevRole(this.value)" class="w-full text-xs bg-gray-900 border border-gray-700 text-gray-300 rounded px-2 py-1.5 focus:outline-none focus:border-blue-500 transition shadow-sm cursor-pointer">
-          </select>
+        <div id="sidebar-user-name" class="user-name-text text-sm font-bold truncate block w-full">User Name</div>
+        <div id="sidebar-user-role" class="user-role-text text-[10px] uppercase tracking-widest block mt-0.5">Role</div>
       </div>
 
-      <button onclick="toggleDarkMode()" title="Toggle Dark Mode" class="w-full flex items-center h-12 text-gray-400 transition hover:bg-gray-700 hover:text-white focus:outline-none mb-1">
+      <div id="dev-switcher-container" class="hidden px-6 mb-3 user-info w-full">
+        <div class="text-[9px] uppercase text-blue-400 font-bold mb-1 tracking-widest">Dev Menu</div>
+        <select id="dev-role-select" onchange="changeDevRole(this.value)" class="w-full text-xs rounded px-2 py-1.5 focus:outline-none transition shadow-sm cursor-pointer"></select>
+      </div>
+
+      <!-- Theme toggle -->
+      <button onclick="toggleDarkMode()" title="Toggle Theme" class="w-full flex items-center h-12 transition focus:outline-none mb-1">
         <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+          <!-- Sun icon — shown in light mode -->
+          <svg class="theme-icon-light w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
+          </svg>
+          <!-- Moon icon — shown in dark mode -->
+          <svg class="theme-icon-dark w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+          </svg>
         </div>
         <span class="nav-text font-bold pr-4 truncate block text-left">Theme</span>
       </button>
 
-      <button onclick="logOutApp()" title="Log Out" class="w-full flex items-center h-12 text-gray-400 transition hover:bg-red-500/20 hover:text-red-400 focus:outline-none">
+      <button onclick="logOutApp()" title="Log Out" class="w-full flex items-center h-12 transition hover:!bg-red-50 hover:!text-red-600 focus:outline-none">
         <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
         </div>
@@ -217,7 +304,7 @@
         <?!= include('Pages/Settings'); ?>
       </div>
     </div>
-    
+
     <button id="mobile-fab" onclick="TaskModal.open()" class="hidden fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 z-40 transition-transform hover:scale-110 active:scale-95">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
     </button>
@@ -236,23 +323,15 @@
   </div>
 
   <script>
-    // Global Helper Functions for the Loader
     window.showLoader = function(message = 'Processing...') {
       const loader = document.getElementById('global-loader');
       const text = document.getElementById('global-loader-text');
       if (text) text.textContent = message;
-      if (loader) {
-        loader.classList.remove('hidden');
-        loader.classList.add('flex');
-      }
+      if (loader) { loader.classList.remove('hidden'); loader.classList.add('flex'); }
     };
-
     window.hideLoader = function() {
       const loader = document.getElementById('global-loader');
-      if (loader) {
-        loader.classList.remove('flex');
-        loader.classList.add('hidden');
-      }
+      if (loader) { loader.classList.remove('flex'); loader.classList.add('hidden'); }
     };
   </script>
 
@@ -261,24 +340,17 @@
   <?!= include('Components/DailyRoutineModal'); ?>
   <?!= include('Components/ActivityModal'); ?>
   <?!= include('Components/CalendarModal'); ?>
-  
+
   <script>
     window.AppConfig = null;
     window.CurrentUser = null;
 
-    // --- DEV MENU LOGIC ---
     window.changeDevRole = function(newRole) {
-      if(!newRole) return;
+      if (!newRole) return;
       window.showLoader(`Switching to ${newRole}...`);
       google.script.run
-        .withSuccessHandler(res => {
-          showToast(`Role switched! Reloading...`, 'success');
-          setTimeout(() => location.reload(), 1000); 
-        })
-        .withFailureHandler(err => {
-          toastError(err.message);
-          window.hideLoader();
-        })
+        .withSuccessHandler(res => { showToast(`Role switched! Reloading...`, 'success'); setTimeout(() => location.reload(), 1000); })
+        .withFailureHandler(err => { toastError(err.message); window.hideLoader(); })
         .API_devSwitchRole(newRole);
     };
 
@@ -294,9 +366,7 @@
       sidebar.classList.add('hidden');
       sidebar.classList.remove('sm:flex');
       document.getElementById('mobile-fab').classList.add('hidden');
-      
       loadPage('Login');
-      
       google.script.run
         .withSuccessHandler(() => { showToast('Logged out successfully.', 'success'); })
         .withFailureHandler(err => toastError('Logout error: ' + err.message))
@@ -304,17 +374,14 @@
     }
 
     function downloadCSV(filename, dataArray) {
-      if (!dataArray || dataArray.length === 0) {
-        showToast('No data to export.', 'error');
-        return;
-      }
+      if (!dataArray || dataArray.length === 0) { showToast('No data to export.', 'error'); return; }
       const headers = Object.keys(dataArray[0]);
       const csvRows = [headers.join(',')];
       for (const row of dataArray) {
         const values = headers.map(header => {
           let val = row[header] === null || row[header] === undefined ? '' : row[header];
           val = val.toString().replace(/"/g, '""');
-          if (val.search(/("|,|\n)/g) >= 0) val = `"${val}"`;
+          if (val.search(/(",|\n)/g) >= 0) val = `"${val}"`;
           return val;
         });
         csvRows.push(values.join(','));
@@ -329,22 +396,21 @@
       showToast('Export complete!', 'success');
     }
 
-    // --- NOTIFICATIONS ---
     window.notifications = [];
     function toggleNotifications() {
       const panel = document.getElementById('notif-panel');
-      if(panel) {
+      if (panel) {
         panel.classList.toggle('hidden');
         if (!panel.classList.contains('hidden')) {
           const badge = document.getElementById('notif-badge');
-          if(badge) badge.classList.add('hidden');
+          if (badge) badge.classList.add('hidden');
         }
       }
     }
 
     document.addEventListener('click', function(e) {
       const panel = document.getElementById('notif-panel');
-      if(!panel) return;
+      if (!panel) return;
       const bell = e.target.closest('button[onclick="toggleNotifications()"]');
       if (!bell && !panel.contains(e.target)) panel.classList.add('hidden');
     });
@@ -356,13 +422,13 @@
       const panel = document.getElementById('notif-panel');
       if (panel && panel.classList.contains('hidden')) {
         const badge = document.getElementById('notif-badge');
-        if(badge) { badge.textContent = window.notifications.length; badge.classList.remove('hidden'); }
+        if (badge) { badge.textContent = window.notifications.length; badge.classList.remove('hidden'); }
       }
     }
 
     function renderNotifications() {
       const list = document.getElementById('notif-list');
-      if(!list) return;
+      if (!list) return;
       if (window.notifications.length === 0) {
         list.innerHTML = '<div class="p-4 text-center text-xs text-gray-400 italic">No new updates</div>';
         return;
@@ -376,8 +442,7 @@
       `).join('');
     }
 
-    // --- HEARTBEAT ---
-    window.lastCheckTime = null; 
+    window.lastCheckTime = null;
     window.heartbeatInterval = null;
 
     function startHeartbeat() {
@@ -395,11 +460,10 @@
               window.lastCheckTime = response.serverTime;
             }
           })
-          .API_checkNewAssignments(window.lastCheckTime, window.CurrentUser.email); 
+          .API_checkNewAssignments(window.lastCheckTime, window.CurrentUser.email);
       }, 15000);
     }
 
-    // --- INITIALIZATION ---
     window.onload = () => {
       google.script.run
         .withSuccessHandler(res => {
@@ -413,52 +477,39 @@
                   window.AppConfig = conf.data;
                   updateSidebarUser(window.CurrentUser);
 
-                  // FIX: Set text explicitly instead of injecting HTML here
                   const appTitle = document.getElementById('sidebar-app-name');
                   if (appTitle && window.AppConfig.appName) {
-                     appTitle.textContent = window.AppConfig.appName;
-                     document.title = window.AppConfig.appName;
+                    appTitle.textContent = window.AppConfig.appName;
+                    document.title = window.AppConfig.appName;
                   }
 
-                  const defaultTiers = {
-                    "0": ["SDL", "Dev"],
-                    "1": ["TL", "OM", "Ops Lead"],
-                    "2": ["SME", "QA"],
-                    "3": ["Agent"]
-                  };
-                  
+                  const defaultTiers = { "0": ["SDL","Dev"], "1": ["TL","OM","Ops Lead"], "2": ["SME","QA"], "3": ["Agent"] };
                   const activeTiers = window.AppConfig.roleTiers || defaultTiers;
-                  let userTier = 3; 
-                  
+                  let userTier = 3;
                   for (const [tierLvl, rolesArray] of Object.entries(activeTiers)) {
                     if (rolesArray.some(r => r.toLowerCase() === (window.CurrentUser.role || '').toLowerCase())) {
-                      userTier = parseInt(tierLvl);
-                      break;
+                      userTier = parseInt(tierLvl); break;
                     }
                   }
-                  
                   window.CurrentUser.tier = userTier;
 
                   if (userTier === 0) localStorage.setItem('tm_is_dev', 'true');
-                  
+
                   if (localStorage.getItem('tm_is_dev') === 'true') {
                     const devContainer = document.getElementById('dev-switcher-container');
                     const devSelect = document.getElementById('dev-role-select');
                     if (devContainer && devSelect) {
                       devContainer.classList.remove('hidden');
                       devSelect.innerHTML = '<option value="">-- Test As --</option><option value="Dev" class="font-bold text-blue-400">Restore to Dev</option>';
-                      const allRoles = window.AppConfig.roles || ['Agent', 'TL', 'SME', 'QA', 'SDL', 'Dev', 'OM', 'Ops Lead'];
+                      const allRoles = window.AppConfig.roles || ['Agent','TL','SME','QA','SDL','Dev','OM','Ops Lead'];
                       allRoles.forEach(r => devSelect.innerHTML += `<option value="${r}">${r}</option>`);
                     }
                   }
 
                   const settingsNav = document.getElementById('nav-Settings');
                   if (settingsNav) {
-                    if (userTier >= 3) {
-                      settingsNav.classList.add('hidden');
-                    } else {
-                      settingsNav.classList.remove('hidden');
-                    }
+                    if (userTier >= 3) settingsNav.classList.add('hidden');
+                    else settingsNav.classList.remove('hidden');
                   }
 
                   startHeartbeat();
@@ -466,19 +517,17 @@
                   document.getElementById('app-sidebar').classList.remove('hidden');
                   document.getElementById('app-sidebar').classList.add('sm:flex');
                   document.getElementById('mobile-fab').classList.remove('hidden');
-                  
+
                   let startPage = localStorage.getItem('tm_last_page') || 'Dashboard';
-                  
                   if (startPage === 'Settings' && userTier >= 3) startPage = 'Dashboard';
                   if (!document.getElementById('view-' + startPage)) startPage = 'Dashboard';
-                  
                   loadPage(startPage);
 
-                  if (startPage === 'Dashboard' && window.Dashboard) window.Dashboard.init();
-                  if (startPage === 'Settings' && window.SettingsPage) window.SettingsPage.init();
-                  if (startPage === 'Analytics' && window.Analytics) window.Analytics.init();
+                  if (startPage === 'Dashboard'   && window.Dashboard)   window.Dashboard.init();
+                  if (startPage === 'Settings'    && window.SettingsPage) window.SettingsPage.init();
+                  if (startPage === 'Analytics'   && window.Analytics)   window.Analytics.init();
                   if (startPage === 'ShiftReport' && window.ShiftReport) window.ShiftReport.init();
-                  
+
                   setTimeout(() => window.hideLoader(), 300);
                 }
               })
