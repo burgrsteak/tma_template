@@ -2,145 +2,234 @@
 
 <div class="h-full flex flex-col bg-[#F8F9FB] relative font-sans">
   <div class="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-8 pb-32">
-    
+
+    <!-- ── HEADER ── -->
     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
       <div>
         <h2 class="text-3xl font-black text-gray-900 tracking-tight">System Insights</h2>
         <p class="text-sm font-medium text-gray-500 mt-1">Real-time productivity metrics and team volume trends to optimize operations.</p>
       </div>
-      
       <div class="flex flex-wrap items-center gap-3">
-        <div class="bg-white border border-gray-200 rounded-full flex items-center px-3 py-1 shadow-sm">
-            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mr-2">Filter:</span>
-            <select id="analytics-time-filter" class="text-sm font-semibold bg-transparent focus:outline-none text-gray-700 cursor-pointer">
-                <option value="30">Last 30 Days</option>
-                <option value="7">Last 7 Days</option>
-                <option value="all">All Time</option>
-            </select>
+        <!-- Time Filter -->
+        <div class="bg-white border border-gray-200 rounded-full flex items-center px-3 py-1.5 shadow-sm">
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mr-2">Filter:</span>
+          <select id="analytics-time-filter" class="text-sm font-semibold bg-transparent focus:outline-none text-gray-700 cursor-pointer">
+            <option value="30">Last 30 Days</option>
+            <option value="7">Last 7 Days</option>
+            <option value="all">All Time</option>
+          </select>
         </div>
-        <button onclick="window.AnalyticsPage.fetchData()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-full shadow-sm transition-all focus:outline-none flex items-center gap-2 transform hover:-translate-y-0.5">
-          <svg class="w-4 h-4 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        <!-- Export CSV -->
+        <button onclick="window.AnalyticsPage.exportCSV()" class="px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-bold rounded-full shadow-sm border border-gray-200 transition-all flex items-center gap-2 hover:-translate-y-0.5">
+          <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Export CSV
+        </button>
+        <!-- Refresh -->
+        <button onclick="window.AnalyticsPage.fetchData()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-full shadow-sm transition-all flex items-center gap-2 transform hover:-translate-y-0.5">
+          <svg class="w-4 h-4 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           Refresh Data
         </button>
       </div>
     </div>
 
+    <!-- ── LOADING STATE ── -->
     <div id="analytics-loading" class="flex flex-col justify-center items-center py-24">
       <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-blue-600 mb-4"></div>
       <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Crunching Numbers...</p>
     </div>
 
+    <!-- ── MAIN CONTENT ── -->
     <div id="analytics-content" class="hidden flex-col gap-6 max-w-[1400px]">
-      
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-2">
-        
-        <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden">
+
+      <!-- ── ROW 1: KPI CARDS (5 cards) ── -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-2">
+
+        <!-- Total Volume -->
+        <div class="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden">
           <div class="flex justify-between items-start">
             <div>
-                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Volume</span>
-                <p class="text-[9px] text-gray-400 font-medium mt-0.5">Tasks processed system-wide</p>
+              <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Volume</span>
+              <p class="text-[9px] text-gray-400 font-medium mt-0.5">Tasks system-wide</p>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+            <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
             </div>
           </div>
           <div class="text-4xl font-black text-gray-900 mt-4 tracking-tight" id="kpi-total">0</div>
         </div>
 
-        <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+        <!-- Completion Rate -->
+        <div class="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
           <div class="flex justify-between items-start">
             <div>
-                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Completion Rate</span>
-                <p class="text-[9px] text-gray-400 font-medium mt-0.5">Resolution efficiency</p>
+              <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Completion Rate</span>
+              <p class="text-[9px] text-gray-400 font-medium mt-0.5">Resolution efficiency</p>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-green-50 text-green-500 flex items-center justify-center flex-shrink-0">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div class="w-9 h-9 rounded-xl bg-green-50 text-green-500 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
           </div>
           <div class="text-4xl font-black text-green-600 mt-4 tracking-tight" id="kpi-rate">0%</div>
         </div>
 
-        <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+        <!-- Avg Handle Time -->
+        <div class="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
           <div class="flex justify-between items-start">
             <div>
-                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Avg Handle Time</span>
-                <p class="text-[9px] text-gray-400 font-medium mt-0.5">Time from creation to completion</p>
+              <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Avg Handle Time</span>
+              <p class="text-[9px] text-gray-400 font-medium mt-0.5">Creation → completion</p>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
           </div>
           <div class="text-4xl font-black text-purple-600 mt-4 tracking-tight" id="kpi-aht">0h</div>
         </div>
 
-        <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+        <!-- Active Backlog -->
+        <div class="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
           <div class="flex justify-between items-start">
-             <div>
-                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Backlog</span>
-                <p class="text-[9px] text-gray-400 font-medium mt-0.5">Tasks awaiting resolution</p>
+            <div>
+              <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Backlog</span>
+              <p class="text-[9px] text-gray-400 font-medium mt-0.5">Awaiting resolution</p>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            <div class="w-9 h-9 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
             </div>
           </div>
           <div class="text-4xl font-black text-orange-500 mt-4 tracking-tight" id="kpi-backlog">0</div>
         </div>
+
+        <!-- NEW: Total Overdue -->
+        <div class="bg-white rounded-3xl p-5 border border-red-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[10px] font-black text-red-400 uppercase tracking-widest">Total Overdue</span>
+              <p class="text-[9px] text-gray-400 font-medium mt-0.5">SLA breaches & late</p>
+            </div>
+            <div class="w-9 h-9 rounded-xl bg-red-50 text-red-500 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+          </div>
+          <div class="text-4xl font-black text-red-500 mt-4 tracking-tight" id="kpi-overdue">0</div>
+        </div>
+
       </div>
 
+      <!-- ── ROW 2: Status Doughnut + Category Bar ── -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
         <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col hover:shadow-md transition-shadow">
-          <div class="mb-6 flex justify-between items-center">
+          <div class="mb-5 flex justify-between items-center">
             <h3 class="text-sm font-black uppercase tracking-widest text-gray-800 flex items-center gap-2">
               <span class="w-2.5 h-2.5 bg-blue-600 rounded-sm transform rotate-45"></span> Task Status Distribution
             </h3>
           </div>
-          <div class="relative flex-1 min-h-[280px] w-full flex items-center justify-center">
+          <div class="relative flex-1 min-h-[260px] w-full flex items-center justify-center">
             <canvas id="chart-status"></canvas>
           </div>
         </div>
 
         <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col hover:shadow-md transition-shadow">
-          <div class="mb-6 flex justify-between items-center">
+          <div class="mb-5 flex justify-between items-center">
             <h3 class="text-sm font-black uppercase tracking-widest text-gray-800 flex items-center gap-2">
               <span class="w-2.5 h-2.5 bg-green-500 rounded-full"></span> Volume by Category
             </h3>
           </div>
-          <div class="relative flex-1 min-h-[280px] w-full flex items-center justify-center">
+          <div class="relative flex-1 min-h-[260px] w-full flex items-center justify-center">
             <canvas id="chart-category"></canvas>
           </div>
         </div>
+
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
+      <!-- ── ROW 3: Team Shift + Team Overdue ── -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
         <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col hover:shadow-md transition-shadow">
-          <div class="flex justify-between items-center mb-6">
+          <div class="flex justify-between items-center mb-5">
             <h3 class="text-sm font-black uppercase tracking-widest text-gray-800 flex items-center gap-2">
-              <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+              <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
               Team Usage per Shift
             </h3>
             <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md uppercase tracking-wider">Identifies Bottlenecks</span>
           </div>
-          <div class="relative w-full flex-1 flex items-center justify-center min-h-[280px]">
+          <div class="relative w-full flex-1 flex items-center justify-center min-h-[260px]">
             <canvas id="chart-team-shift"></canvas>
           </div>
         </div>
 
         <div class="bg-white p-6 rounded-3xl border border-red-100 shadow-sm flex flex-col hover:shadow-md transition-shadow relative overflow-hidden group">
           <div class="absolute top-6 right-6 flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-600 rounded-lg border border-red-100 shadow-sm animate-pulse">
-            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span class="text-[10px] font-black uppercase tracking-widest">Click to View Cases</span>
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="text-[10px] font-black uppercase tracking-widest">Click Bar to Drill Down</span>
           </div>
-          
-          <div class="mb-6 pr-32">
+          <div class="mb-5 pr-36">
             <h3 class="text-sm font-black uppercase tracking-widest text-gray-800">Overdue & Late by Team</h3>
-            <p class="text-xs text-gray-500 mt-1 font-medium">Tasks that are actively overdue or were completed late. 
-              <!-- <span class="text-red-500 font-bold">Click a bar to view tasks.</span> -->
-            </p>
+            <p class="text-xs text-gray-500 mt-1 font-medium">Tasks actively overdue or completed late.</p>
           </div>
-          
-          <div class="relative w-full flex-1 flex items-center justify-center min-h-[280px]">
+          <div class="relative w-full flex-1 flex items-center justify-center min-h-[260px]">
             <canvas id="chart-team-overdue"></canvas>
           </div>
+        </div>
+
+      </div>
+
+      <!-- ── ROW 4: NEW — Priority Breakdown + SLA Health Gauge ── -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Priority Breakdown Bar -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col hover:shadow-md transition-shadow">
+          <div class="mb-5 flex justify-between items-center">
+            <h3 class="text-sm font-black uppercase tracking-widest text-gray-800 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 bg-amber-500 rounded-sm"></span> Tasks by Priority
+            </h3>
+            <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md uppercase tracking-wider">Risk Distribution</span>
+          </div>
+          <div class="relative flex-1 min-h-[260px] w-full flex items-center justify-center">
+            <canvas id="chart-priority"></canvas>
+          </div>
+        </div>
+
+        <!-- SLA Health — Horizontal stacked bar per priority -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col hover:shadow-md transition-shadow">
+          <div class="mb-5 flex justify-between items-center">
+            <h3 class="text-sm font-black uppercase tracking-widest text-gray-800 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 bg-teal-500 rounded-full"></span> SLA Health by Priority
+            </h3>
+            <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md uppercase tracking-wider">On-Time vs Late</span>
+          </div>
+          <div class="relative flex-1 min-h-[260px] w-full flex items-center justify-center">
+            <canvas id="chart-sla"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── ROW 5: NEW — Summary Stats Table ── -->
+      <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
+          <h3 class="text-sm font-black uppercase tracking-widest text-gray-800 flex items-center gap-2">
+            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Team Summary
+          </h3>
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Per-team aggregated stats</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-100">
+                <th class="text-left px-6 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Team</th>
+                <th class="text-right px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Tasks</th>
+                <th class="text-right px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Overdue</th>
+                <th class="text-right px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Overdue Rate</th>
+                <th class="text-left px-6 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Health</th>
+              </tr>
+            </thead>
+            <tbody id="team-summary-table" class="divide-y divide-gray-50">
+              <!-- filled by JS -->
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -148,38 +237,38 @@
   </div>
 </div>
 
+<!-- ── OVERDUE DRILL-DOWN MODAL ── -->
 <div id="overdue-modal-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-[70] hidden flex items-center justify-center backdrop-blur-sm transition-opacity">
   <div class="bg-[#F8F9FB] rounded-3xl shadow-2xl w-full max-w-3xl mx-4 flex flex-col max-h-[85vh] overflow-hidden transform scale-95 transition-transform duration-200" id="overdue-modal-content">
     <div class="px-6 py-5 border-b border-gray-200 flex justify-between items-center bg-white z-20">
       <h3 class="text-lg font-black tracking-tight text-gray-900 flex items-center gap-2" id="overdue-modal-title">
-        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         Overdue Tasks
       </h3>
       <button onclick="window.AnalyticsPage.closeOverdueModal()" class="text-gray-400 hover:text-gray-600 transition p-1.5 rounded-full hover:bg-gray-100 focus:outline-none border border-transparent hover:border-gray-200 shadow-sm">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
-    <div id="overdue-modal-list" class="flex-1 overflow-y-auto p-6 space-y-3">
-       </div>
+    <!-- Search inside modal -->
+    <div class="px-6 pt-4 pb-2 bg-white border-b border-gray-100">
+      <input id="overdue-modal-search" type="text" placeholder="Search tasks…" oninput="window.AnalyticsPage.filterModalList(this.value)"
+        class="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-400 transition" />
+    </div>
+    <div id="overdue-modal-list" class="flex-1 overflow-y-auto p-6 space-y-3"></div>
   </div>
 </div>
 
 <script>
 window.AnalyticsPage = {
   charts: {},
-  currentMetrics: null, // Global store for drill-down access
+  currentMetrics: null,
+  _modalTasks: [],     // cache for modal search filter
+  _modalTeam: '',
 
   init() {
-    // Only fetch if chart.js has loaded
-    if (typeof Chart === 'undefined') {
-      setTimeout(() => this.init(), 100);
-      return;
-    }
-    
-    // Set default font for all charts to match Tailwind Sans
+    if (typeof Chart === 'undefined') { setTimeout(() => this.init(), 100); return; }
     Chart.defaults.font.family = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
     Chart.defaults.color = '#64748B';
-
     this.fetchData();
   },
 
@@ -195,10 +284,10 @@ window.AnalyticsPage = {
           if (response.success) {
             this.renderDashboard(response.data);
           } else {
-            if (typeof toastError === "function") toastError("Failed to load analytics: " + response.error);
+            if (typeof toastError === 'function') toastError('Failed to load analytics: ' + response.error);
           }
         } catch(e) {
-          if (typeof toastError === "function") toastError("Error parsing analytics data.");
+          if (typeof toastError === 'function') toastError('Error parsing analytics data.');
           console.error(e);
         } finally {
           document.getElementById('analytics-loading').classList.add('hidden');
@@ -207,7 +296,7 @@ window.AnalyticsPage = {
         }
       })
       .withFailureHandler(err => {
-        if (typeof toastError === "function") toastError("Server error: " + err.message);
+        if (typeof toastError === 'function') toastError('Server error: ' + err.message);
         document.getElementById('analytics-loading').classList.add('hidden');
       })
       .API_getAnalytics();
@@ -215,353 +304,392 @@ window.AnalyticsPage = {
 
   renderDashboard(data) {
     const { metrics } = data;
-    this.currentMetrics = metrics; // Save globally for drill-down
+    this.currentMetrics = metrics;
 
-    // 1. Populate KPIs
-    const total = metrics.total || 0;
-    const comp = metrics.completed || 0;
-    const rate = total > 0 ? Math.round((comp / total) * 100) : 0;
-    
-    document.getElementById('kpi-total').textContent = total.toLocaleString();
-    document.getElementById('kpi-rate').textContent = rate + '%';
+    // ── KPIs ──
+    const total   = metrics.total || 0;
+    const comp    = metrics.completed || 0;
+    const rate    = total > 0 ? Math.round((comp / total) * 100) : 0;
+    const totalOverdue = Object.values(metrics.teamOverdue || {}).reduce((a,b) => a+b, 0);
+
+    this._animateCount('kpi-total',   0, total,        800);
+    this._animateCount('kpi-rate',    0, rate,         800, '%');
+    this._animateCount('kpi-backlog', 0, total - comp, 800);
+    this._animateCount('kpi-overdue', 0, totalOverdue, 800);
     document.getElementById('kpi-aht').textContent = (metrics.avgHandleTimeHours || 0) + 'h';
-    document.getElementById('kpi-backlog').textContent = (total - comp).toLocaleString();
 
-    // 2. Render Charts
-    this.renderStatusChart(metrics.byStatus);
-    this.renderCategoryChart(metrics.byType);
-    this.renderTeamShiftChart(metrics.teamUsage);
-    this.renderTeamOverdueChart(metrics.teamOverdue); // Render Overdue chart
+    // ── Charts ──
+    this.renderStatusChart(metrics.byStatus || {});
+    this.renderCategoryChart(metrics.byType || {});
+    this.renderTeamShiftChart(metrics.teamUsage || {});
+    this.renderTeamOverdueChart(metrics.teamOverdue || {});
+    this.renderPriorityChart(metrics.byPriority || {});
+    this.renderSLAChart(metrics.slaHealth || {});
+    this.renderTeamSummaryTable(metrics);
   },
 
+  // ── Animated counter ──
+  _animateCount(elId, from, to, duration, suffix = '') {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const start = performance.now();
+    const step = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(from + (to - from) * ease).toLocaleString() + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  },
+
+  // ── CHART: Status Doughnut ──
   renderStatusChart(statusData) {
     const ctx = document.getElementById('chart-status').getContext('2d');
     if (this.charts.status) this.charts.status.destroy();
-
     const labels = Object.keys(statusData);
-    const data = Object.values(statusData);
-    
-    // Modern Color Palette
-    const bgColors = {
-      'Completed': '#10B981', // Emerald
-      'Done': '#10B981', 
-      'In-Progress': '#3B82F6', // Blue
-      'Open': '#F59E0B', // Amber
-      'New': '#F59E0B'
-    };
-
-    const colors = labels.map(l => bgColors[l] || '#8B5CF6');
-
+    const data   = Object.values(statusData);
+    const palette = { 'Completed':'#10B981','Done':'#10B981','In-Progress':'#3B82F6','Open':'#F59E0B','New':'#F59E0B' };
     this.charts.status = new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: labels,
-        datasets: [{
-          data: data,
-          backgroundColor: colors,
-          borderWidth: 0,
-          hoverOffset: 8
-        }]
+        labels,
+        datasets: [{ data, backgroundColor: labels.map(l => palette[l] || '#8B5CF6'), borderWidth: 0, hoverOffset: 8 }]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        responsive: true, maintainAspectRatio: false,
         plugins: {
-          legend: { 
-            position: 'right', 
-            labels: { 
-              usePointStyle: true, 
-              boxWidth: 10, 
-              padding: 20,
-              font: { size: 12, weight: 'bold' } 
-            } 
-          },
-          tooltip: {
-            backgroundColor: '#1E293B',
-            padding: 12,
-            cornerRadius: 8,
-            titleFont: { size: 13 },
-            bodyFont: { size: 13, weight: 'bold' }
-          }
+          legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 10, padding: 20, font: { size: 12, weight: 'bold' } } },
+          tooltip: { backgroundColor: '#1E293B', padding: 12, cornerRadius: 8, titleFont: { size: 13 }, bodyFont: { size: 13, weight: 'bold' } }
         },
-        cutout: '75%',
-        layout: { padding: 10 }
+        cutout: '75%', layout: { padding: 10 }
       }
     });
   },
 
+  // ── CHART: Category Bar ──
   renderCategoryChart(typeData) {
     const ctx = document.getElementById('chart-category').getContext('2d');
     if (this.charts.category) this.charts.category.destroy();
-
-    // Sort to show highest volume first
-    const sortedEntries = Object.entries(typeData).sort((a, b) => b[1] - a[1]);
-    const labels = sortedEntries.map(e => e[0]);
-    const data = sortedEntries.map(e => e[1]);
-
+    const sorted = Object.entries(typeData).sort((a,b) => b[1]-a[1]);
     this.charts.category = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: labels,
-        datasets: [{
-          label: 'Total Tasks',
-          data: data,
-          backgroundColor: '#3B82F6',
-          borderRadius: 6,
-          barPercentage: 0.6,
-          maxBarThickness: 40
-        }]
+        labels: sorted.map(e=>e[0]),
+        datasets: [{ label: 'Total Tasks', data: sorted.map(e=>e[1]), backgroundColor: '#3B82F6', borderRadius: 6, barPercentage: 0.6, maxBarThickness: 40 }]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { 
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#1E293B',
-            padding: 12,
-            cornerRadius: 8,
-            titleFont: { size: 13 },
-            bodyFont: { size: 13, weight: 'bold' }
-          }
-        },
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1E293B', padding: 12, cornerRadius: 8, titleFont: { size: 13 }, bodyFont: { size: 13, weight: 'bold' } } },
         scales: {
-          y: { 
-            beginAtZero: true, 
-            grid: { borderDash: [4, 4], color: '#E2E8F0', drawBorder: false }, 
-            ticks: { font: { size: 11, weight: '500' }, padding: 10 } 
-          },
-          x: { 
-            grid: { display: false, drawBorder: false }, 
-            ticks: { font: { size: 11, weight: 'bold' }, color: '#475569' } 
-          }
+          y: { beginAtZero: true, grid: { borderDash:[4,4], color:'#E2E8F0', drawBorder:false }, ticks: { font: { size:11, weight:'500' }, padding: 10 } },
+          x: { grid: { display:false, drawBorder:false }, ticks: { font: { size:11, weight:'bold' }, color:'#475569' } }
         },
         layout: { padding: { top: 10 } }
       }
     });
   },
 
+  // ── CHART: Team Shift Stacked Bar ──
   renderTeamShiftChart(teamUsageData) {
     const ctx = document.getElementById('chart-team-shift').getContext('2d');
     if (this.charts.teamShift) this.charts.teamShift.destroy();
-
-    const teams = Object.keys(teamUsageData).sort();
-    const shiftSet = new Set();
-    teams.forEach(team => {
-      Object.keys(teamUsageData[team]).forEach(shift => shiftSet.add(shift));
-    });
-    const shifts = Array.from(shiftSet).sort();
-
-    // Beautiful corporate palette for the shifts
-    const colors = ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#14B8A6'];
-
-    const datasets = shifts.map((shift, i) => {
-      return {
-        label: shift,
-        data: teams.map(team => teamUsageData[team][shift] || 0),
-        backgroundColor: colors[i % colors.length],
-        borderRadius: 4,
-        barPercentage: 0.7,
-        maxBarThickness: 50
-      };
-    });
-
+    const teams  = Object.keys(teamUsageData).sort();
+    const shifts = [...new Set(teams.flatMap(t => Object.keys(teamUsageData[t])))].sort();
+    const colors = ['#10B981','#3B82F6','#F59E0B','#8B5CF6','#EC4899','#14B8A6'];
     this.charts.teamShift = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: teams,
-        datasets: datasets
+        datasets: shifts.map((shift, i) => ({
+          label: shift,
+          data: teams.map(t => teamUsageData[t][shift] || 0),
+          backgroundColor: colors[i % colors.length],
+          borderRadius: 4, barPercentage: 0.7, maxBarThickness: 50
+        }))
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        responsive: true, maintainAspectRatio: false,
         plugins: {
-          legend: { 
-            position: 'top', 
-            align: 'end',
-            labels: { 
-              usePointStyle: true, 
-              boxWidth: 8, 
-              padding: 20,
-              font: { size: 12, weight: 'bold' } 
-            } 
-          },
-          tooltip: { 
-            mode: 'index', 
-            intersect: false,
-            backgroundColor: '#1E293B',
-            padding: 12,
-            cornerRadius: 8,
-            titleFont: { size: 13 },
-            bodyFont: { size: 13, weight: 'bold' }
-          }
+          legend: { position:'top', align:'end', labels: { usePointStyle:true, boxWidth:8, padding:20, font:{ size:12, weight:'bold' } } },
+          tooltip: { mode:'index', intersect:false, backgroundColor:'#1E293B', padding:12, cornerRadius:8, titleFont:{ size:13 }, bodyFont:{ size:13, weight:'bold' } }
         },
         scales: {
-          x: { 
-            stacked: true, 
-            grid: { display: false, drawBorder: false }, 
-            ticks: { font: { size: 12, weight: 'bold' }, color: '#475569' } 
-          },
-          y: { 
-            stacked: true, 
-            beginAtZero: true, 
-            grid: { borderDash: [4, 4], color: '#E2E8F0', drawBorder: false },
-            ticks: { font: { size: 11, weight: '500' }, padding: 10 }
-          }
+          x: { stacked:true, grid:{ display:false, drawBorder:false }, ticks:{ font:{ size:12, weight:'bold' }, color:'#475569' } },
+          y: { stacked:true, beginAtZero:true, grid:{ borderDash:[4,4], color:'#E2E8F0', drawBorder:false }, ticks:{ font:{ size:11, weight:'500' }, padding:10 } }
         }
       }
     });
   },
 
+  // ── CHART: Team Overdue Bar ──
   renderTeamOverdueChart(overdueData) {
     const canvas = document.getElementById('chart-team-overdue');
-    if (!canvas || !overdueData) return;
-
-    if (this.charts && this.charts.teamOverdue) {
-      this.charts.teamOverdue.destroy();
-    }
-
-    // Sort teams by highest overdue count first
-    const sortedTeams = Object.keys(overdueData).sort((a, b) => overdueData[b] - overdueData[a]);
-    const labels = sortedTeams;
-    const data = sortedTeams.map(team => overdueData[team]);
-
+    if (!canvas) return;
+    if (this.charts.teamOverdue) this.charts.teamOverdue.destroy();
+    const sorted = Object.entries(overdueData).sort((a,b) => b[1]-a[1]);
+    const labels = sorted.map(e=>e[0]);
+    const data   = sorted.map(e=>e[1]);
     const ctx = canvas.getContext('2d');
-    if (!this.charts) this.charts = {};
-
     this.charts.teamOverdue = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: labels,
-        datasets: [{
-          label: 'Overdue Tasks',
-          data: data,
-          backgroundColor: '#EF4444', // Tailwind Red-500
-          hoverBackgroundColor: '#DC2626', // Tailwind Red-600
-          borderRadius: 6,
-          borderSkipped: false,
-          maxBarThickness: 48
-        }]
+        labels,
+        datasets: [{ label: 'Overdue Tasks', data, backgroundColor:'#EF4444', hoverBackgroundColor:'#DC2626', borderRadius:6, borderSkipped:false, maxBarThickness:48 }]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        responsive: true, maintainAspectRatio: false,
         onClick: (e, elements) => {
           if (elements.length > 0) {
-            const index = elements[0].index;
-            const teamName = this.charts.teamOverdue.data.labels[index];
+            const teamName = this.charts.teamOverdue.data.labels[elements[0].index];
             this.openOverdueModal(teamName);
           }
         },
-        onHover: (e, elements) => {
-          e.native.target.style.cursor = elements.length ? 'pointer' : 'default';
-        },
+        onHover: (e, elements) => { e.native.target.style.cursor = elements.length ? 'pointer' : 'default'; },
         plugins: {
-          legend: {
-            display: false // Hide legend to reduce cognitive load
-          },
-          tooltip: {
-            backgroundColor: '#1F2937', // Tailwind Gray-800
-            padding: 12,
-            titleFont: { size: 12, family: "'Inter', sans-serif" },
-            bodyFont: { size: 14, weight: 'bold', family: "'Inter', sans-serif" },
-            cornerRadius: 8,
-            displayColors: false
-          }
+          legend: { display: false },
+          tooltip: { backgroundColor:'#1F2937', padding:12, titleFont:{ size:12 }, bodyFont:{ size:14, weight:'bold' }, cornerRadius:8, displayColors:false }
         },
         scales: {
-          x: {
-            grid: {
-              display: false,
-              drawBorder: false
-            },
-            ticks: {
-              font: { family: "'Inter', sans-serif", size: 11, weight: 'bold' },
-              color: '#6B7280' // Tailwind Gray-500
-            }
-          },
-          y: {
-            grid: {
-              color: '#F3F4F6', // Tailwind Gray-100 dashed background
-              drawBorder: false,
-              borderDash: [5, 5]
-            },
-            ticks: {
-              font: { family: "'Inter', sans-serif", size: 11 },
-              color: '#9CA3AF',
-              stepSize: 1, // Whole numbers only for task counts
-              precision: 0
-            },
-            beginAtZero: true
-          }
+          x: { grid:{ display:false, drawBorder:false }, ticks:{ font:{ size:11, weight:'bold' }, color:'#6B7280' } },
+          y: { grid:{ color:'#F3F4F6', drawBorder:false, borderDash:[5,5] }, ticks:{ font:{ size:11 }, color:'#9CA3AF', stepSize:1, precision:0 }, beginAtZero:true }
         }
       }
     });
   },
 
-  // NEW: Opens the modal and injects the specific team's overdue task history
+  // ── CHART: NEW — Priority Breakdown Horizontal Bar ──
+  renderPriorityChart(priorityData) {
+    const ctx = document.getElementById('chart-priority').getContext('2d');
+    if (this.charts.priority) this.charts.priority.destroy();
+
+    // Build from byStatus × byPriority if available, else use raw priorityData
+    const labels = ['High', 'Medium', 'Low'];
+    const palette = { 'High': '#EF4444', 'Medium': '#F59E0B', 'Low': '#10B981' };
+    const data = labels.map(l => priorityData[l] || priorityData[l.toLowerCase()] || 0);
+
+    this.charts.priority = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{ label: 'Tasks', data, backgroundColor: labels.map(l => palette[l]), borderRadius: 6, barPercentage: 0.55, maxBarThickness: 44 }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { backgroundColor:'#1E293B', padding:12, cornerRadius:8, titleFont:{ size:13 }, bodyFont:{ size:13, weight:'bold' } }
+        },
+        scales: {
+          x: { beginAtZero:true, grid:{ borderDash:[4,4], color:'#E2E8F0', drawBorder:false }, ticks:{ font:{ size:11 }, padding:8 } },
+          y: { grid:{ display:false, drawBorder:false }, ticks:{ font:{ size:13, weight:'bold' }, color:'#374151' } }
+        },
+        layout: { padding: { right: 10 } }
+      }
+    });
+  },
+
+  // ── CHART: NEW — SLA Health Horizontal Stacked Bar ──
+  renderSLAChart(slaHealth) {
+    const ctx = document.getElementById('chart-sla').getContext('2d');
+    if (this.charts.sla) this.charts.sla.destroy();
+
+    // slaHealth shape: { High: { onTime: N, late: N }, Medium: {...}, Low: {...} }
+    // Fallback: build from priorityData + teamOverdue if not present
+    const priorities = ['High', 'Medium', 'Low'];
+    const onTime = priorities.map(p => (slaHealth[p] && slaHealth[p].onTime) || 0);
+    const late   = priorities.map(p => (slaHealth[p] && slaHealth[p].late)   || 0);
+
+    this.charts.sla = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: priorities,
+        datasets: [
+          { label: 'On Time', data: onTime, backgroundColor: '#10B981', borderRadius: 4, barPercentage: 0.6, maxBarThickness: 44 },
+          { label: 'Late / Overdue', data: late, backgroundColor: '#EF4444', borderRadius: 4, barPercentage: 0.6, maxBarThickness: 44 }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position:'top', align:'end', labels:{ usePointStyle:true, boxWidth:8, padding:16, font:{ size:12, weight:'bold' } } },
+          tooltip: { mode:'index', intersect:false, backgroundColor:'#1E293B', padding:12, cornerRadius:8, titleFont:{ size:13 }, bodyFont:{ size:13, weight:'bold' } }
+        },
+        scales: {
+          x: { stacked:true, beginAtZero:true, grid:{ borderDash:[4,4], color:'#E2E8F0', drawBorder:false }, ticks:{ font:{ size:11 }, padding:8 } },
+          y: { stacked:true, grid:{ display:false, drawBorder:false }, ticks:{ font:{ size:13, weight:'bold' }, color:'#374151' } }
+        }
+      }
+    });
+  },
+
+  // ── TABLE: NEW — Team Summary ──
+  renderTeamSummaryTable(metrics) {
+    const tbody = document.getElementById('team-summary-table');
+    if (!tbody) return;
+
+    // Build per-team total from teamUsage
+    const teamTotals = {};
+    Object.entries(metrics.teamUsage || {}).forEach(([team, shifts]) => {
+      teamTotals[team] = Object.values(shifts).reduce((a,b) => a+b, 0);
+    });
+
+    const allTeams = [...new Set([...Object.keys(teamTotals), ...Object.keys(metrics.teamOverdue || {})])].sort();
+
+    if (allTeams.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-400 text-sm py-8 font-medium">No team data available.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = allTeams.map(team => {
+      const total   = teamTotals[team] || 0;
+      const overdue = (metrics.teamOverdue || {})[team] || 0;
+      const rate    = total > 0 ? Math.round((overdue / total) * 100) : 0;
+
+      // Health indicator
+      let healthColor = 'bg-green-100 text-green-700';
+      let healthLabel = 'Healthy';
+      if (rate >= 30) { healthColor = 'bg-red-100 text-red-700'; healthLabel = 'Critical'; }
+      else if (rate >= 15) { healthColor = 'bg-yellow-100 text-yellow-700'; healthLabel = 'At Risk'; }
+
+      // Progress bar fill
+      const barColor = rate >= 30 ? 'bg-red-500' : rate >= 15 ? 'bg-yellow-400' : 'bg-green-500';
+
+      return `
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="px-6 py-4 font-bold text-gray-800 text-sm">${team}</td>
+          <td class="px-4 py-4 text-right font-bold text-gray-700 tabular-nums">${total.toLocaleString()}</td>
+          <td class="px-4 py-4 text-right font-bold ${overdue > 0 ? 'text-red-600' : 'text-gray-400'} tabular-nums">${overdue}</td>
+          <td class="px-4 py-4 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <div class="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div class="${barColor} h-full rounded-full transition-all" style="width:${Math.min(rate,100)}%"></div>
+              </div>
+              <span class="text-xs font-bold text-gray-600 tabular-nums w-8 text-right">${rate}%</span>
+            </div>
+          </td>
+          <td class="px-6 py-4">
+            <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${healthColor}">${healthLabel}</span>
+          </td>
+        </tr>`;
+    }).join('');
+  },
+
+  // ── OVERDUE MODAL ──
   openOverdueModal(teamName) {
     if (!this.currentMetrics || !this.currentMetrics.teamOverdueDetails) return;
-    
-    const tasks = this.currentMetrics.teamOverdueDetails[teamName] || [];
-    const listEl = document.getElementById('overdue-modal-list');
-    const titleEl = document.getElementById('overdue-modal-title');
+    this._modalTasks = this.currentMetrics.teamOverdueDetails[teamName] || [];
+    this._modalTeam  = teamName;
 
-    // Title includes dynamic count badge
+    document.getElementById('overdue-modal-search').value = '';
+    this._renderModalItems(this._modalTasks, teamName);
+    document.getElementById('overdue-modal-overlay').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('overdue-modal-content').classList.remove('scale-95');
+      document.getElementById('overdue-modal-content').classList.add('scale-100');
+    }, 10);
+  },
+
+  filterModalList(query) {
+    const q = (query || '').toLowerCase();
+    const filtered = q
+      ? this._modalTasks.filter(t =>
+          (t.title || '').toLowerCase().includes(q) ||
+          (t.assignedTo || '').toLowerCase().includes(q) ||
+          (t.priority || '').toLowerCase().includes(q) ||
+          (t.status || '').toLowerCase().includes(q))
+      : this._modalTasks;
+    this._renderModalItems(filtered, this._modalTeam, true);
+  },
+
+  _renderModalItems(tasks, teamName, isFiltered = false) {
+    const listEl  = document.getElementById('overdue-modal-list');
+    const titleEl = document.getElementById('overdue-modal-title');
     titleEl.innerHTML = `
-      <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-      Overdue Tasks: ${teamName} 
-      <span class="ml-2 text-xs bg-red-100 text-red-700 px-2.5 py-0.5 rounded-md shadow-sm border border-red-200">${tasks.length}</span>
+      <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Overdue: ${teamName}
+      <span class="ml-2 text-xs bg-red-100 text-red-700 px-2.5 py-0.5 rounded-md shadow-sm border border-red-200">${tasks.length}${isFiltered ? ' filtered' : ''}</span>
     `;
 
     if (tasks.length === 0) {
-      listEl.innerHTML = `<div class="text-center text-gray-400 text-sm py-10 font-bold">No overdue tasks found.</div>`;
-    } else {
-      listEl.innerHTML = tasks.map(t => {
-        // Aesthetic color parsing for priorities and status
-        const pLow = (t.priority || '').toLowerCase();
-        let pColor = 'text-gray-600 bg-gray-100 border-gray-200';
-        if (pLow === 'high') pColor = 'text-red-700 bg-red-50 border-red-200';
-        if (pLow === 'medium') pColor = 'text-blue-700 bg-blue-50 border-blue-200';
-
-        const sColor = t.isCompleted ? 'text-green-700 bg-green-50 border-green-200' : 'text-orange-700 bg-orange-50 border-orange-200 animate-pulse';
-        const displayStatus = t.isCompleted ? 'Completed Late' : t.status;
-
-        // Note: View button assumes the Dashboard ViewTaskModal is accessible globally.
-        // If ViewTaskModal is not loaded on Analytics page, this serves purely as a read-only list.
-        return `
-          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col gap-3 hover:border-red-300 hover:shadow-md transition-all">
-            <div class="flex justify-between items-start gap-4">
-              <span class="text-sm font-black text-gray-900 leading-snug">${t.title}</span>
-              <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border shadow-sm ${sColor} whitespace-nowrap">${displayStatus}</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-sm border ${pColor}">${t.priority || 'None'}</span>
-              <span class="text-xs font-bold text-gray-500 truncate flex items-center gap-1">
-                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                ${t.assignedTo ? t.assignedTo.split('@')[0] : 'Unassigned'}
-              </span>
-            </div>
-          </div>
-        `;
-      }).join('');
+      listEl.innerHTML = `<div class="text-center text-gray-400 text-sm py-10 font-bold">${isFiltered ? 'No tasks match your search.' : 'No overdue tasks found.'}</div>`;
+      return;
     }
 
-    document.getElementById('overdue-modal-overlay').classList.remove('hidden');
-    setTimeout(() => {
-      const content = document.getElementById('overdue-modal-content');
-      content.classList.remove('scale-95');
-      content.classList.add('scale-100');
-    }, 10);
+    listEl.innerHTML = tasks.map(t => {
+      const pLow = (t.priority || '').toLowerCase();
+      let pColor = 'text-gray-600 bg-gray-100 border-gray-200';
+      if (pLow === 'high')   pColor = 'text-red-700 bg-red-50 border-red-200';
+      if (pLow === 'medium') pColor = 'text-blue-700 bg-blue-50 border-blue-200';
+      if (pLow === 'low')    pColor = 'text-green-700 bg-green-50 border-green-200';
+
+      const sColor = t.isCompleted ? 'text-green-700 bg-green-50 border-green-200' : 'text-orange-700 bg-orange-50 border-orange-200 animate-pulse';
+      const displayStatus = t.isCompleted ? 'Completed Late' : (t.status || 'Overdue');
+
+      return `
+        <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col gap-3 hover:border-red-300 hover:shadow-md transition-all">
+          <div class="flex justify-between items-start gap-4">
+            <span class="text-sm font-black text-gray-900 leading-snug">${t.title || 'Untitled'}</span>
+            <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border shadow-sm ${sColor} whitespace-nowrap flex-shrink-0">${displayStatus}</span>
+          </div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <span class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-sm border ${pColor}">${t.priority || 'None'}</span>
+            <span class="text-xs font-bold text-gray-500 truncate flex items-center gap-1">
+              <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+              ${t.assignedTo ? t.assignedTo.split('@')[0] : 'Unassigned'}
+            </span>
+          </div>
+        </div>`;
+    }).join('');
   },
 
   closeOverdueModal() {
     const content = document.getElementById('overdue-modal-content');
     content.classList.remove('scale-100');
     content.classList.add('scale-95');
-    setTimeout(() => {
-      document.getElementById('overdue-modal-overlay').classList.add('hidden');
-    }, 150);
+    setTimeout(() => { document.getElementById('overdue-modal-overlay').classList.add('hidden'); }, 150);
+  },
+
+  // ── EXPORT CSV ──
+  exportCSV() {
+    if (!this.currentMetrics) {
+      if (typeof toastError === 'function') toastError('No data loaded yet. Click Refresh first.');
+      return;
+    }
+    const m = this.currentMetrics;
+    const rows = [
+      ['Metric', 'Value'],
+      ['Total Tasks', m.total || 0],
+      ['Completed', m.completed || 0],
+      ['Completion Rate (%)', m.total > 0 ? Math.round((m.completed / m.total) * 100) : 0],
+      ['Active Backlog', (m.total || 0) - (m.completed || 0)],
+      ['Avg Handle Time (hrs)', m.avgHandleTimeHours || 0],
+      ['Total Overdue', Object.values(m.teamOverdue || {}).reduce((a,b)=>a+b,0)],
+      [],
+      ['Status', 'Count'],
+      ...Object.entries(m.byStatus || {}).map(([k,v]) => [k, v]),
+      [],
+      ['Category', 'Count'],
+      ...Object.entries(m.byType || {}).map(([k,v]) => [k, v]),
+      [],
+      ['Team', 'Total Tasks', 'Overdue'],
+      ...Object.keys({ ...Object.fromEntries(Object.entries(m.teamUsage||{}).map(([k,v])=>[k,Object.values(v).reduce((a,b)=>a+b,0)])), ...(m.teamOverdue||{}) }).sort().map(team => {
+        const total = Object.values((m.teamUsage||{})[team]||{}).reduce((a,b)=>a+b,0);
+        const overdue = (m.teamOverdue||{})[team]||0;
+        return [team, total, overdue];
+      })
+    ];
+
+    const csv = rows.map(r => r.map(cell => `"${String(cell||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `analytics_export_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    if (typeof toastSuccess === 'function') toastSuccess('Analytics exported to CSV!');
   }
 };
 </script>
