@@ -30,8 +30,9 @@
       --sidebar-text-muted:#6b7280;
       --sidebar-hover-bg:  #f3f4f6;
       --sidebar-hover-text:#111827;
-      --sidebar-active-bg: #eff6ff;
-      --sidebar-active-text:#1d4ed8;
+      /* Active: solid blue background + white text — high contrast, unmistakable */
+      --sidebar-active-bg:   #2563eb;
+      --sidebar-active-text: #ffffff;
       --sidebar-footer-bg: #f9fafb;
       --sidebar-logo-color:#2563eb;
     }
@@ -64,6 +65,9 @@
     }
     #app-sidebar .nav-link {
       color: var(--sidebar-text) !important;
+      border-radius: 0.5rem;
+      margin-inline: 0.75rem;
+      width: calc(100% - 1.5rem);
     }
     #app-sidebar .nav-link:hover {
       background-color: var(--sidebar-hover-bg) !important;
@@ -72,6 +76,14 @@
     #app-sidebar .nav-link.active-nav {
       background-color: var(--sidebar-active-bg) !important;
       color: var(--sidebar-active-text) !important;
+      /* Subtle left accent bar on top of the solid bg */
+      box-shadow: inset 3px 0 0 rgba(255,255,255,0.35);
+      font-weight: 700;
+    }
+    /* In light mode, icon inside active nav should also be white */
+    #app-sidebar .nav-link.active-nav svg {
+      color: var(--sidebar-active-text) !important;
+      stroke: var(--sidebar-active-text) !important;
     }
     #app-sidebar .sidebar-footer {
       background-color: var(--sidebar-footer-bg) !important;
@@ -186,6 +198,11 @@
     #app-sidebar.sidebar-collapsed .logo-text,
     #app-sidebar.sidebar-collapsed .nav-text,
     #app-sidebar.sidebar-collapsed .user-info { display: none !important; }
+    /* Restore full width for nav-link when collapsed (margin hack removed) */
+    #app-sidebar.sidebar-collapsed .nav-link {
+      margin-inline: 0.25rem;
+      width: calc(100% - 0.5rem);
+    }
 
     /* ── Theme toggle icon swap ──────────────────────────────────────── */
     .theme-icon-light { display: block; }
@@ -227,7 +244,7 @@
       <span id="sidebar-app-name" class="logo-text text-xl font-bold tracking-tight pr-4 truncate block">Task Manager</span>
     </div>
 
-    <nav class="flex-1 py-4 space-y-2 overflow-y-auto overflow-x-hidden">
+    <nav class="flex-1 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
       <a href="#" id="nav-Dashboard" onclick="loadPage('Dashboard')" class="nav-link flex items-center h-12 transition whitespace-nowrap w-full">
         <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
