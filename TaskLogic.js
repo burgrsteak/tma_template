@@ -11,6 +11,7 @@ function API_getPage(pageName) {
 
 /**
  * Checks if the user has an active 12-hour session on page load/refresh.
+ * Returns { active: false } — never throws — if the user is not in the Users sheet.
  */
 function API_checkCurrentSession() {
   const email = Session.getActiveUser().getEmail();
@@ -25,21 +26,39 @@ function API_checkCurrentSession() {
     const hoursElapsed = (now - start) / (1000 * 60 * 60);
 
     if (hoursElapsed < 12) {
-      const usersSheet = getTable('Users');
-      const data = usersSheet.getDataRange().getValues();
-      const headers = data[0].map(h => String(h).trim().toLowerCase());
-      const emailIdx = headers.indexOf(COLUMN_MAP.USER_EMAIL.toLowerCase());
-      const nameIdx  = headers.indexOf(COLUMN_MAP.USER_NAME.toLowerCase());
-      const roleIdx  = headers.indexOf(COLUMN_MAP.USER_ROLE.toLowerCase());
+      try {
+        const usersSheet = getTable('Users');
+        const data = usersSheet.getDataRange().getValues();
+        const headers = data[0].map(h => String(h).trim().toLowerCase());
+        const emailIdx = headers.indexOf(COLUMN_MAP.USER_EMAIL.toLowerCase());
+        const nameIdx  = headers.indexOf(COLUMN_MAP.USER_NAME.toLowerCase());
+        const roleIdx  = headers.indexOf(COLUMN_MAP.USER_ROLE.toLowerCase());
 
-      let userRecord = null;
-      for (let i = 1; i < data.length; i++) {
-        if (String(data[i][emailIdx]).trim().toLowerCase() === email.trim().toLowerCase()) {
-          userRecord = { name: data[i][nameIdx], email: email, role: data[i][roleIdx] };
-          break;
+        let userRecord = null;
+        for (let i = 1; i < data.length; i++) {
+          if (String(data[i][emailIdx]).trim().toLowerCase() === email.trim().toLowerCase()) {
+            userRecord = {
+              name:  nameIdx  > -1 ? (data[i][nameIdx]  || email) : email,
+              email: email,
+              role:  roleIdx  > -1 ? (data[i][roleIdx]  || 'User') : 'User'
+            };
+            break;
+          }
         }
+
+        // User has a live session cookie but is no longer in the Users sheet
+        // (deleted or not yet added). Kill the session gracefully.
+        if (!userRecord) {
+          props.deleteProperty('sessionStart');
+          props.deleteProperty('currentLogId');
+          return JSON.stringify({ active: false, reason: 'user_not_found' });
+        }
+
+        return JSON.stringify({ active: true, user: userRecord });
+      } catch (e) {
+        console.error('API_checkCurrentSession error: ' + e.message);
+        return JSON.stringify({ active: false, reason: 'error' });
       }
-      return JSON.stringify({ active: true, user: userRecord });
     } else {
       props.deleteProperty('sessionStart');
       return JSON.stringify({ active: false, expired: true });
@@ -68,16 +87,20 @@ function API_loginUser() {
     const shiftEndIdx   = headers.indexOf(COLUMN_MAP.USER_SHIFT_END.toLowerCase());
 
     let userRecord = null;
-    let currentTeam = '--';
+    let currentTeam  = '--';
     let currentStart = '';
-    let currentEnd = '';
+    let currentEnd   = '';
 
     for (let i = 1; i < data.length; i++) {
       if (String(data[i][emailIdx]).trim().toLowerCase() === email) {
-        userRecord   = { name: data[i][nameIdx], email: email, role: data[i][roleIdx] };
-        currentTeam  = teamIdx > -1 ? data[i][teamIdx] : '--';
+        userRecord   = {
+          name:  nameIdx > -1 ? (data[i][nameIdx] || email) : email,
+          email: email,
+          role:  roleIdx > -1 ? (data[i][roleIdx] || 'User') : 'User'
+        };
+        currentTeam  = teamIdx       > -1 ? data[i][teamIdx]       : '--';
         currentStart = shiftStartIdx > -1 ? data[i][shiftStartIdx] : '';
-        currentEnd   = shiftEndIdx > -1 ? data[i][shiftEndIdx] : '';
+        currentEnd   = shiftEndIdx   > -1 ? data[i][shiftEndIdx]   : '';
         break;
       }
     }
@@ -93,7 +116,7 @@ function API_loginUser() {
 
       // Auto-close ghost sessions
       if (logData.length > 1) {
-        const lHeaders = logData[0].map(h => String(h).trim().toLowerCase());
+        const lHeaders    = logData[0].map(h => String(h).trim().toLowerCase());
         const lEmailIdx   = lHeaders.indexOf(COLUMN_MAP.SESSION_EMAIL.toLowerCase());
         const lTimeOutIdx = lHeaders.indexOf(COLUMN_MAP.SESSION_TIME_OUT.toLowerCase());
         const lRemarkIdx  = lHeaders.indexOf(COLUMN_MAP.SESSION_REMARK.toLowerCase());
@@ -102,7 +125,7 @@ function API_loginUser() {
           if (String(logData[i][lEmailIdx]).trim().toLowerCase() === email &&
               String(logData[i][lTimeOutIdx]).trim() === '') {
             logSheet.getRange(i + 1, lTimeOutIdx + 1).setValue(now.toISOString());
-            logSheet.getRange(i + 1, lRemarkIdx + 1).setValue('System Auto-Close: Duplicate Session Detected');
+            logSheet.getRange(i + 1, lRemarkIdx  + 1).setValue('System Auto-Close: Duplicate Session Detected');
           }
         }
       }
@@ -156,41 +179,47 @@ function API_logoutUser() {
 /**
  * Returns the numeric Tier of the calling user.
  * Tier 0 = highest privilege (Admin/Dev), Tier 3 = lowest (User).
+ * Returns Tier 3 safely if the user is not found.
  */
 function getUserTier_(email) {
-  const usersData = getTable('Users').getDataRange().getValues();
-  const headers   = usersData[0].map(h => String(h).trim().toLowerCase());
-  const emailCol  = headers.indexOf(COLUMN_MAP.USER_EMAIL.toLowerCase());
-  const roleCol   = headers.indexOf(COLUMN_MAP.USER_ROLE.toLowerCase());
+  try {
+    const usersData = getTable('Users').getDataRange().getValues();
+    const headers   = usersData[0].map(h => String(h).trim().toLowerCase());
+    const emailCol  = headers.indexOf(COLUMN_MAP.USER_EMAIL.toLowerCase());
+    const roleCol   = headers.indexOf(COLUMN_MAP.USER_ROLE.toLowerCase());
 
-  let userRole = '';
-  if (emailCol !== -1 && roleCol !== -1) {
-    for (let i = 1; i < usersData.length; i++) {
-      if (String(usersData[i][emailCol]).trim().toLowerCase() === String(email).trim().toLowerCase()) {
-        userRole = usersData[i][roleCol];
+    let userRole = '';
+    if (emailCol !== -1 && roleCol !== -1) {
+      for (let i = 1; i < usersData.length; i++) {
+        if (String(usersData[i][emailCol]).trim().toLowerCase() === String(email).trim().toLowerCase()) {
+          userRole = String(usersData[i][roleCol] || '').trim();
+          break;
+        }
+      }
+    }
+
+    const props = PropertiesService.getScriptProperties();
+    const settingsStr = props.getProperty('DYNAMIC_APP_SETTINGS');
+    let currentTiers = { '0': ['Admin','Dev'], '1': ['Manager'], '2': ['Lead','QA'], '3': ['User'] };
+    if (settingsStr) {
+      try {
+        const conf = JSON.parse(settingsStr);
+        if (conf.roleTiers) currentTiers = conf.roleTiers;
+      } catch(e) {}
+    }
+
+    let userTier = 3;
+    for (const [tierLvl, rolesArray] of Object.entries(currentTiers)) {
+      if (Array.isArray(rolesArray) && rolesArray.some(r => r && r.toLowerCase() === userRole.toLowerCase())) {
+        userTier = parseInt(tierLvl);
         break;
       }
     }
+    return userTier;
+  } catch(e) {
+    console.error('getUserTier_ error for ' + email + ': ' + e.message);
+    return 3; // Safest fallback — treat unknown users as lowest tier
   }
-
-  const props = PropertiesService.getScriptProperties();
-  const settingsStr = props.getProperty('DYNAMIC_APP_SETTINGS');
-  let currentTiers = { '0': ['Admin','Dev'], '1': ['Manager'], '2': ['Lead','QA'], '3': ['User'] };
-  if (settingsStr) {
-    try {
-      const conf = JSON.parse(settingsStr);
-      if (conf.roleTiers) currentTiers = conf.roleTiers;
-    } catch(e) {}
-  }
-
-  let userTier = 3;
-  for (const [tierLvl, rolesArray] of Object.entries(currentTiers)) {
-    if (rolesArray.some(r => r.toLowerCase() === (userRole || '').toLowerCase())) {
-      userTier = parseInt(tierLvl);
-      break;
-    }
-  }
-  return userTier;
 }
 
 // ---------------------------------------------------------------------------
@@ -233,7 +262,7 @@ function API_getNotifications() {
     const data  = sheet.getDataRange().getValues();
     if (data.length <= 1) return JSON.stringify({ success: true, data: [] });
 
-    const headers  = data[0].map(h => String(h).trim().toLowerCase());
+    const headers    = data[0].map(h => String(h).trim().toLowerCase());
     const idIdx      = headers.indexOf('id');
     const userIdx    = headers.indexOf('user');
     const msgIdx     = headers.indexOf('message');
@@ -250,7 +279,7 @@ function API_getNotifications() {
           createdAt: data[i][createdIdx]
         });
       }
-      if (notifs.length >= 50) break; // Cap at 50
+      if (notifs.length >= 50) break;
     }
     return JSON.stringify({ success: true, data: notifs });
   } catch(e) {
@@ -406,7 +435,6 @@ function API_getTasks(page, pageSize, showAll, teamFilter) {
       }
     }
 
-    // Build a set of emails on this team
     if (currentUserTeam) {
       const teamEmails = new Set();
       for (let i = 1; i < usersData.length; i++) {
@@ -414,17 +442,13 @@ function API_getTasks(page, pageSize, showAll, teamFilter) {
           teamEmails.add(String(usersData[i][uEmailIdx]).trim().toLowerCase());
         }
       }
-      // Store for use below
       currentUserTeam = teamEmails;
     }
   }
 
   let tasks = data.slice(1).map(row => {
     let task = {};
-    headers.forEach((h, idx) => {
-      let key = String(h).trim();
-      task[key] = row[idx];
-    });
+    headers.forEach((h, idx) => { task[String(h).trim()] = row[idx]; });
     return task;
   }).filter(t => t.isDeleted !== true && t.isDeleted !== 'TRUE');
 
@@ -512,7 +536,6 @@ function API_updateTaskStatus(payloadJson) {
     const systemMessage = 'Changed status from **' + oldRecord.status + '** to **' + payload.status + '**.';
     commentsSheet.appendRow([generateUUID(), payload.id, 'System|' + user, systemMessage, "'" + now, "'" + now, false]);
 
-    // Notify assignee if someone else changed it
     if (oldRecord.assignedTo && oldRecord.assignedTo !== user) {
       pushNotification_(oldRecord.assignedTo, 'Task "' + (oldRecord.title || payload.id) + '" status changed to ' + payload.status + '.');
     }
@@ -569,7 +592,6 @@ function API_updateTask(payloadJson) {
       commentsSheet.appendRow([generateUUID(), payload.id, 'System|' + user, 'Task Updated: ' + changes.join(', ') + '.', "'" + now, "'" + now, false]);
     }
 
-    // Notify new assignee
     if (payload.assignedTo && payload.assignedTo !== oldRecord.assignedTo && payload.assignedTo !== user) {
       pushNotification_(payload.assignedTo, 'You have been assigned task: "' + (mergedRecord.title || payload.id) + '".');
     }
@@ -587,8 +609,8 @@ function API_deleteTask(taskId) {
     const taskSheet = getTable('Tasks');
     const taskData  = taskSheet.getDataRange().getValues();
     const tHeaders  = taskData[0].map(h => String(h).trim().toLowerCase());
-    const tIdIdx    = tHeaders.indexOf('id');
-    const tTitleIdx = tHeaders.indexOf('title');
+    const tIdIdx       = tHeaders.indexOf('id');
+    const tTitleIdx    = tHeaders.indexOf('title');
     const tDeletedIdx  = tHeaders.indexOf('isdeleted');
     const tUpdatedIdx  = tHeaders.indexOf('updatedat');
     const userEmail = Session.getActiveUser().getEmail();
@@ -606,12 +628,10 @@ function API_deleteTask(taskId) {
     }
     if (taskRowIndex === -1) throw new Error('Task not found.');
 
-    // Soft delete — flag only, no row removal
     taskSheet.getRange(taskRowIndex, tDeletedIdx + 1).setValue(true);
     taskSheet.getRange(taskRowIndex, tUpdatedIdx + 1).setValue("'" + now);
     SpreadsheetApp.flush();
 
-    // Archive copy to DeletedTasks
     try {
       const deletedSheet = getTable('DeletedTasks');
       deletedSheet.appendRow(taskData[taskRowIndex - 1]);
@@ -647,8 +667,8 @@ function API_bulkUpdate(payloadJson) {
       if (payload.taskIds.includes(taskId)) {
         const oldValue = data[i][targetIdx];
         sheet.getRange(i + 1, targetIdx + 1).setValue(payload.value);
-        sheet.getRange(i + 1, updatedIdx + 1).setValue("'" + now);
-        const actionType  = payload.field === 'status' ? 'UPDATE_STATUS' : 'UPDATE_ASSIGNMENT';
+        sheet.getRange(i + 1, updatedIdx  + 1).setValue("'" + now);
+        const actionType    = payload.field === 'status' ? 'UPDATE_STATUS' : 'UPDATE_ASSIGNMENT';
         logActivity(actionType, { id: taskId, [payload.field]: oldValue }, { id: taskId, [payload.field]: payload.value });
         const systemMessage = payload.field === 'status'
           ? 'Bulk changed status from **' + (oldValue||'None') + '** to **' + payload.value + '**.'
@@ -709,7 +729,7 @@ function API_editComment(payloadJson) {
     const updatedIdx = headers.indexOf('updatedat');
     const deletedIdx = headers.indexOf('isdeleted');
 
-    let targetRow = -1;
+    let targetRow  = -1;
     let oldMessage = '';
 
     for (let i = 1; i < data.length; i++) {
@@ -717,7 +737,6 @@ function API_editComment(payloadJson) {
         if (data[i][deletedIdx] === true || data[i][deletedIdx] === 'TRUE') {
           throw new Error('Cannot edit a deleted comment.');
         }
-        // Only owner or admin (Tier 0/1) may edit
         if (data[i][userIdx] !== user && userTier > 1) {
           throw new Error('Security Block: You can only edit your own comments.');
         }
@@ -729,7 +748,7 @@ function API_editComment(payloadJson) {
     if (targetRow === -1) throw new Error('Comment not found.');
 
     const now = new Date().toISOString();
-    sheet.getRange(targetRow, msgIdx + 1).setValue(payload.message);
+    sheet.getRange(targetRow, msgIdx     + 1).setValue(payload.message);
     sheet.getRange(targetRow, updatedIdx + 1).setValue("'" + now);
     SpreadsheetApp.flush();
 
@@ -805,11 +824,11 @@ function API_toggleTime(taskId) {
     }
 
     if (openLogIndex !== -1) {
-      const timeInStr  = sheet.getRange(openLogIndex, timeInIdx + 1).getValue();
-      const diffMs     = now - new Date(timeInStr);
+      const timeInStr    = sheet.getRange(openLogIndex, timeInIdx + 1).getValue();
+      const diffMs       = now - new Date(timeInStr);
       const durationMins = Math.round(diffMs / 60000);
       sheet.getRange(openLogIndex, timeOutIdx + 1).setValue(now.toISOString());
-      sheet.getRange(openLogIndex, durIdx + 1).setValue(durationMins);
+      sheet.getRange(openLogIndex, durIdx     + 1).setValue(durationMins);
       SpreadsheetApp.flush();
       return JSON.stringify({ success: true, action: 'clocked_out', duration: durationMins });
     } else {
@@ -840,8 +859,8 @@ function API_getShiftReport() {
     if (uEmailIdx > -1) {
       for (let i = 1; i < usersData.length; i++) {
         userMap[usersData[i][uEmailIdx]] = {
-          name: usersData[i][uNameIdx]  || 'Unknown',
-          role: usersData[i][uRoleIdx]  || 'User'
+          name: usersData[i][uNameIdx] || 'Unknown',
+          role: usersData[i][uRoleIdx] || 'User'
         };
       }
     }
@@ -928,24 +947,24 @@ function API_getAnalytics() {
     let completionCount = 0;
     const nowMs = new Date().getTime();
 
-    const hLower    = tHeaders.map(h => String(h).trim().toLowerCase());
-    const idIdx     = hLower.indexOf('id');
-    const statusIdx = hLower.indexOf('status');
+    const hLower      = tHeaders.map(h => String(h).trim().toLowerCase());
+    const idIdx       = hLower.indexOf('id');
+    const statusIdx   = hLower.indexOf('status');
     const assigneeIdx = hLower.indexOf('assignedto');
-    const typeIdx   = hLower.indexOf('tasktype');
-    const createdIdx = hLower.indexOf('createdat');
-    const updatedIdx = hLower.indexOf('updatedat');
-    const deletedIdx = hLower.indexOf('isdeleted');
+    const typeIdx     = hLower.indexOf('tasktype');
+    const createdIdx  = hLower.indexOf('createdat');
+    const updatedIdx  = hLower.indexOf('updatedat');
+    const deletedIdx  = hLower.indexOf('isdeleted');
     const deadlineIdx = hLower.indexOf('deadline');
-    const titleIdx  = hLower.indexOf('title');
+    const titleIdx    = hLower.indexOf('title');
     const priorityIdx = hLower.indexOf('priority');
 
     rows.forEach(row => {
       if (row[deletedIdx] === true || row[deletedIdx] === 'TRUE') return;
       metrics.total++;
 
-      const status   = row[statusIdx]  || 'Unknown';
-      const type     = row[typeIdx]    || 'General';
+      const status   = row[statusIdx]   || 'Unknown';
+      const type     = row[typeIdx]     || 'General';
       const assignee = row[assigneeIdx];
       const deadline = row[deadlineIdx];
       const title    = row[titleIdx] ? String(row[titleIdx]) : '';
@@ -1034,7 +1053,6 @@ function API_getConfig() {
       };
     }
 
-    // Always pull live users from sheet
     const usersSheet = getTable('Users');
     const uData    = usersSheet.getDataRange().getValues();
     const uHeaders = uData[0].map(h => String(h).trim().toLowerCase());
@@ -1049,9 +1067,9 @@ function API_getConfig() {
         if (uData[i][emailIdx]) {
           users.push({
             email: uData[i][emailIdx],
-            name:  uData[i][nameIdx],
-            role:  roleIdx > -1 ? uData[i][roleIdx] : 'User',
-            team:  teamIdx > -1 ? uData[i][teamIdx] : ''
+            name:  uData[i][nameIdx]  || uData[i][emailIdx],
+            role:  roleIdx > -1 ? (uData[i][roleIdx] || 'User') : 'User',
+            team:  teamIdx > -1 ? (uData[i][teamIdx] || '')     : ''
           });
         }
       }
@@ -1140,7 +1158,7 @@ function API_saveUserAdmin(payloadJson) {
       }
     }
     const rowData = data[0].map(h => {
-      const key = String(h).trim().toLowerCase();
+      const key   = String(h).trim().toLowerCase();
       const match = Object.keys(payload).find(k => k.toLowerCase() === key);
       return match !== undefined ? payload[match] : '';
     });
@@ -1200,7 +1218,7 @@ function API_bulkUpdateUsersAdmin(payloadJson) {
  */
 function API_devSwitchRole(newRole) {
   return withLock(() => {
-    const email   = Session.getActiveUser().getEmail();
+    const email    = Session.getActiveUser().getEmail();
     const userTier = getUserTier_(email);
     if (userTier > 0) throw new Error('Security Block: API_devSwitchRole is restricted to Tier 0 (Admin/Dev) users only.');
 
@@ -1267,7 +1285,7 @@ function API_getShiftLogs() {
     }).reverse();
     return JSON.stringify({ success: true, data: logs });
   } catch(e) {
-    return JSON.stringify({ success: false, error: error.message });
+    return JSON.stringify({ success: false, error: e.message });
   }
 }
 
@@ -1283,12 +1301,12 @@ function API_checkNewAssignments(lastCheckIsoString, userEmail) {
     const taskSheet = getTable('Tasks');
     const tasks     = taskSheet.getDataRange().getValues();
     const tHeaders  = tasks[0].map(h => String(h).trim().toLowerCase());
-    const idIdx      = tHeaders.indexOf('id');
-    const titleIdx   = tHeaders.indexOf('title');
-    const assignedIdx = tHeaders.indexOf('assignedto');
+    const idIdx        = tHeaders.indexOf('id');
+    const titleIdx     = tHeaders.indexOf('title');
+    const assignedIdx  = tHeaders.indexOf('assignedto');
     const createdByIdx = tHeaders.indexOf('createdby');
-    const updatedIdx  = tHeaders.indexOf('updatedat');
-    const checkTimeMs = new Date(lastCheckIsoString).getTime() - 2000;
+    const updatedIdx   = tHeaders.indexOf('updatedat');
+    const checkTimeMs  = new Date(lastCheckIsoString).getTime() - 2000;
     let updates = [];
 
     const activitySheet = getTable('Comments');
@@ -1333,12 +1351,12 @@ function API_getRecentActivity() {
 
     let activities = [];
     if (commentsData.length > 1) {
-      const cHeaders  = commentsData[0].map(h => String(h).trim().toLowerCase());
-      const cTaskIdx  = cHeaders.indexOf('taskid');
-      const cUserIdx  = cHeaders.indexOf('user');
-      const cMsgIdx   = cHeaders.indexOf('message');
-      const cTimeIdx  = cHeaders.indexOf('createdat');
-      const cDelIdx   = cHeaders.indexOf('isdeleted');
+      const cHeaders = commentsData[0].map(h => String(h).trim().toLowerCase());
+      const cTaskIdx = cHeaders.indexOf('taskid');
+      const cUserIdx = cHeaders.indexOf('user');
+      const cMsgIdx  = cHeaders.indexOf('message');
+      const cTimeIdx = cHeaders.indexOf('createdat');
+      const cDelIdx  = cHeaders.indexOf('isdeleted');
       const start = Math.max(1, commentsData.length - 50);
       for (let i = commentsData.length - 1; i >= start; i--) {
         if (commentsData[i][cDelIdx] === true || commentsData[i][cDelIdx] === 'TRUE') continue;
@@ -1383,7 +1401,6 @@ function API_requestAccess(reason) {
     sheet.appendRow([new Date().toISOString(), email, reason || 'No reason provided', 'Pending']);
     SpreadsheetApp.flush();
 
-    // Email top-tier admins
     const usersSheet = getTable('Users');
     const uData    = usersSheet.getDataRange().getValues();
     const uHeaders = uData[0].map(h => String(h).trim().toLowerCase());
@@ -1396,7 +1413,7 @@ function API_requestAccess(reason) {
       let tier0Roles = ['Admin','Dev'];
       if (settingsStr) { try { const c = JSON.parse(settingsStr); if (c.roleTiers && c.roleTiers['0']) tier0Roles = c.roleTiers['0']; } catch(e) {} }
       for (let i = 1; i < uData.length; i++) {
-        const role = String(uData[i][uRoleIdx]).toLowerCase().trim();
+        const role = String(uData[i][uRoleIdx] || '').toLowerCase().trim();
         if (tier0Roles.some(r => r.toLowerCase() === role) && uData[i][uEmailIdx]) adminEmails.push(uData[i][uEmailIdx]);
       }
     }
