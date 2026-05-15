@@ -61,21 +61,49 @@ const COLUMN_MAP = {
 
 /**
  * Returns the 0-based index of a column in a header row.
- * Throws a descriptive error if the column is not found, so
- * callers never silently work on the wrong column.
  *
- * @param {Array}  headers   - The first row of a sheet (array of strings).
- * @param {string} colKey    - A key from COLUMN_MAP.
- * @param {boolean} required - If true, throws when not found. Default true.
+ * Matching strategy (most-to-least strict):
+ *   1. Exact case-insensitive + trimmed match against COLUMN_MAP value.
+ *   2. Fuzzy match: strip all non-alphanumeric chars and compare — handles
+ *      headers like "Email Address", "e mail", "emailAddress", etc.
+ *   3. If still not found AND required=true → throws a descriptive error so
+ *      the developer sees the real column name and can update COLUMN_MAP.
+ *
+ * @param {Array}   headers  - The first row of a sheet (array of strings).
+ * @param {string}  colKey   - A key from COLUMN_MAP.
+ * @param {boolean} required - Throw when not found. Default true.
  * @returns {number} Zero-based column index, or -1 when not required & missing.
  */
 function colIdx(headers, colKey, required) {
   if (required === undefined) required = true;
+
   const colName = COLUMN_MAP[colKey];
   if (!colName) throw new Error('Unknown COLUMN_MAP key: ' + colKey);
-  const idx = headers.map(h => String(h).trim().toLowerCase()).indexOf(colName.toLowerCase());
-  if (idx === -1 && required) {
-    throw new Error('Column "' + colName + '" not found in sheet. Check COLUMN_MAP.');
+
+  const normalised = headers.map(h => String(h).trim().toLowerCase());
+
+  // 1. Exact (case-insensitive, trimmed) match
+  let idx = normalised.indexOf(colName.toLowerCase());
+
+  // 2. Fuzzy match — strip everything except a-z0-9
+  if (idx === -1) {
+    const fuzzyTarget = colName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    idx = normalised.findIndex(h => h.replace(/[^a-z0-9]/g, '') === fuzzyTarget);
   }
+
+  if (idx === -1 && required) {
+    // Log the actual headers so the developer knows exactly what to fix.
+    console.error(
+      'colIdx: Column "' + colName + '" not found. ' +
+      'Actual headers: [' + headers.map(h => '"' + String(h).trim() + '"').join(', ') + ']. ' +
+      'Update COLUMN_MAP["' + colKey + '"] to match your sheet.'
+    );
+    throw new Error(
+      'Column "' + colName + '" not found in sheet. ' +
+      'Actual headers: ' + headers.map(h => String(h).trim()).join(', ') + '. ' +
+      'Check COLUMN_MAP.'
+    );
+  }
+
   return idx;
 }
