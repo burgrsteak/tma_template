@@ -12,6 +12,12 @@ function API_getPage(pageName) {
 /**
  * Checks if the user has an active 12-hour session on page load/refresh.
  * Returns { active: false } — never throws — if the user is not in the Users sheet.
+ *
+ * FIX (2026-05-15): Uses colIdx() helper for safe column lookups so a header
+ * mismatch can never silently produce userRecord = null.  When a valid session
+ * cookie exists but the email is absent from the Users sheet the function now
+ * attempts a one-time auto-registration as Dev before giving up, preventing
+ * the developer from being permanently locked out after a fresh DB init.
  */
 function API_checkCurrentSession() {
   const email = Session.getActiveUser().getEmail();
@@ -20,51 +26,84 @@ function API_checkCurrentSession() {
   const props = PropertiesService.getUserProperties();
   const sessionStart = props.getProperty('sessionStart');
 
-  if (sessionStart) {
-    const now = new Date().getTime();
-    const start = parseInt(sessionStart, 10);
-    const hoursElapsed = (now - start) / (1000 * 60 * 60);
+  if (!sessionStart) return JSON.stringify({ active: false });
 
-    if (hoursElapsed < 12) {
-      try {
-        const usersSheet = getTable('Users');
-        const data = usersSheet.getDataRange().getValues();
-        const headers = data[0].map(h => String(h).trim().toLowerCase());
-        const emailIdx = headers.indexOf(COLUMN_MAP.USER_EMAIL.toLowerCase());
-        const nameIdx  = headers.indexOf(COLUMN_MAP.USER_NAME.toLowerCase());
-        const roleIdx  = headers.indexOf(COLUMN_MAP.USER_ROLE.toLowerCase());
+  const now = new Date().getTime();
+  const start = parseInt(sessionStart, 10);
+  const hoursElapsed = (now - start) / (1000 * 60 * 60);
 
-        let userRecord = null;
-        for (let i = 1; i < data.length; i++) {
-          if (String(data[i][emailIdx]).trim().toLowerCase() === email.trim().toLowerCase()) {
-            userRecord = {
-              name:  nameIdx  > -1 ? (data[i][nameIdx]  || email) : email,
-              email: email,
-              role:  roleIdx  > -1 ? (data[i][roleIdx]  || 'User') : 'User'
-            };
-            break;
-          }
-        }
-
-        // User has a live session cookie but is no longer in the Users sheet
-        // (deleted or not yet added). Kill the session gracefully.
-        if (!userRecord) {
-          props.deleteProperty('sessionStart');
-          props.deleteProperty('currentLogId');
-          return JSON.stringify({ active: false, reason: 'user_not_found' });
-        }
-
-        return JSON.stringify({ active: true, user: userRecord });
-      } catch (e) {
-        console.error('API_checkCurrentSession error: ' + e.message);
-        return JSON.stringify({ active: false, reason: 'error' });
-      }
-    } else {
-      props.deleteProperty('sessionStart');
-      return JSON.stringify({ active: false, expired: true });
-    }
+  if (hoursElapsed >= 12) {
+    props.deleteProperty('sessionStart');
+    return JSON.stringify({ active: false, expired: true });
   }
-  return JSON.stringify({ active: false });
+
+  try {
+    const usersSheet = getTable('Users');
+    const data = usersSheet.getDataRange().getValues();
+    const headers = data[0];
+
+    // Use colIdx() so a header mismatch throws a clear error instead of
+    // silently returning -1 and wiping the session.
+    const emailIdx = colIdx(headers, 'USER_EMAIL');
+    const nameIdx  = colIdx(headers, 'USER_NAME',  false); // optional — fall back gracefully
+    const roleIdx  = colIdx(headers, 'USER_ROLE',  false);
+
+    let userRecord = null;
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][emailIdx]).trim().toLowerCase() === email.trim().toLowerCase()) {
+        userRecord = {
+          name:  nameIdx  > -1 ? (data[i][nameIdx]  || email) : email,
+          email: email,
+          role:  roleIdx  > -1 ? (data[i][roleIdx]  || 'User') : 'User'
+        };
+        break;
+      }
+    }
+
+    // ----------------------------------------------------------------
+    // DEVELOPER SAFETY NET
+    // If the session cookie is valid but the email is missing from the
+    // Users sheet (e.g. after a DB re-init or accidental row deletion)
+    // auto-register the user as Dev so the owner is never locked out.
+    // The client will receive active:true and can fix the Users sheet
+    // from inside the app.
+    // ----------------------------------------------------------------
+    if (!userRecord) {
+      try {
+        const nameColIdx = nameIdx > -1 ? nameIdx : -1;
+        const roleColIdx = roleIdx > -1 ? roleIdx : -1;
+
+        // Build a sparse row aligned to the existing header order
+        const newRow = headers.map((h, idx) => {
+          if (idx === emailIdx)    return email;
+          if (idx === nameColIdx)  return email.split('@')[0];
+          if (idx === roleColIdx)  return 'Dev';
+          return '';
+        });
+        usersSheet.appendRow(newRow);
+        SpreadsheetApp.flush();
+
+        userRecord = {
+          name:  email.split('@')[0],
+          email: email,
+          role:  'Dev'
+        };
+        console.warn('API_checkCurrentSession: auto-registered missing user as Dev — ' + email);
+      } catch (regErr) {
+        // Auto-registration failed (permissions, locked sheet, etc.).
+        // Fall back to killing the session gracefully rather than crashing.
+        console.error('API_checkCurrentSession: auto-register failed: ' + regErr.message);
+        props.deleteProperty('sessionStart');
+        props.deleteProperty('currentLogId');
+        return JSON.stringify({ active: false, reason: 'user_not_found' });
+      }
+    }
+
+    return JSON.stringify({ active: true, user: userRecord });
+  } catch (e) {
+    console.error('API_checkCurrentSession error: ' + e.message);
+    return JSON.stringify({ active: false, reason: 'error', detail: e.message });
+  }
 }
 
 /**
@@ -77,14 +116,14 @@ function API_loginUser() {
 
     const usersSheet = getTable('Users');
     const data = usersSheet.getDataRange().getValues();
-    const headers = data[0].map(h => String(h).trim().toLowerCase());
+    const headers = data[0];
 
-    const emailIdx      = headers.indexOf(COLUMN_MAP.USER_EMAIL.toLowerCase());
-    const nameIdx       = headers.indexOf(COLUMN_MAP.USER_NAME.toLowerCase());
-    const roleIdx       = headers.indexOf(COLUMN_MAP.USER_ROLE.toLowerCase());
-    const teamIdx       = headers.indexOf(COLUMN_MAP.USER_TEAM.toLowerCase());
-    const shiftStartIdx = headers.indexOf(COLUMN_MAP.USER_SHIFT_START.toLowerCase());
-    const shiftEndIdx   = headers.indexOf(COLUMN_MAP.USER_SHIFT_END.toLowerCase());
+    const emailIdx      = colIdx(headers, 'USER_EMAIL');
+    const nameIdx       = colIdx(headers, 'USER_NAME',       false);
+    const roleIdx       = colIdx(headers, 'USER_ROLE',       false);
+    const teamIdx       = colIdx(headers, 'USER_TEAM',       false);
+    const shiftStartIdx = colIdx(headers, 'USER_SHIFT_START',false);
+    const shiftEndIdx   = colIdx(headers, 'USER_SHIFT_END',  false);
 
     let userRecord = null;
     let currentTeam  = '--';
@@ -184,9 +223,9 @@ function API_logoutUser() {
 function getUserTier_(email) {
   try {
     const usersData = getTable('Users').getDataRange().getValues();
-    const headers   = usersData[0].map(h => String(h).trim().toLowerCase());
-    const emailCol  = headers.indexOf(COLUMN_MAP.USER_EMAIL.toLowerCase());
-    const roleCol   = headers.indexOf(COLUMN_MAP.USER_ROLE.toLowerCase());
+    const headers   = usersData[0];
+    const emailCol  = colIdx(headers, 'USER_EMAIL');
+    const roleCol   = colIdx(headers, 'USER_ROLE', false);
 
     let userRole = '';
     if (emailCol !== -1 && roleCol !== -1) {
