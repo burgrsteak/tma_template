@@ -449,7 +449,6 @@ window.Dashboard = {
     isAdmin: false, 
     viewMode: localStorage.getItem('tma_view_mode') || 'grid', 
     advFilters: { search: '', category: '', assignee: '', priority: '', dateFrom: '', dateTo: '' },
-    
     activeFreqFilters: new Set(['All']), 
     sectionTabs: {}, 
     sectionBulkMode: {}, 
@@ -460,21 +459,35 @@ window.Dashboard = {
     this.populateDrawerSelects(); 
     this.setLoading(true);
     this.updateViewToggleUI();
-    // REMOVED INJECT LOGO SCRIPT (This was causing the double globe!)
     
     if (window.CurrentUser && window.CurrentUser.name) {
        document.getElementById('dash-greeting').textContent = `Welcome back, ${window.CurrentUser.name.split(' ')[0]}!`;
     }
 
+    const preloadedTasks = Array.isArray(window._preloadedTasks) ? window._preloadedTasks : null;
+    const preloadedIsAdmin = typeof window._preloadedIsAdmin === 'boolean' ? window._preloadedIsAdmin : null;
+
+    const applyDashboardData = (response) => {
+      this.state.tasks = response.rows || [];
+      this.state.isAdmin = !!response.isAdmin;
+      this.renderFrequencyToggle(); 
+      this.renderBoard();
+      this.updateTeamToggleUI();
+      this.checkBackgroundSLAs();
+      if (window.DailyRoutine) window.DailyRoutine.checkAndShow(this.state.tasks);
+    };
+
+    if (preloadedTasks) {
+      applyDashboardData({ rows: preloadedTasks, isAdmin: preloadedIsAdmin });
+      window._preloadedTasks = null;
+      window._preloadedIsAdmin = null;
+      this.setLoading(false);
+      return;
+    }
+
     this.fetchTasks()
       .then(response => {
-        this.state.tasks = response.rows;
-        this.state.isAdmin = response.isAdmin;
-        this.renderFrequencyToggle(); 
-        this.renderBoard();
-        this.updateTeamToggleUI();
-        this.checkBackgroundSLAs();
-        if (window.DailyRoutine) window.DailyRoutine.checkAndShow(this.state.tasks);
+        applyDashboardData(response);
       })
       .catch(err => {
         if (typeof toastError === "function") toastError('Failed to load tasks: ' + err.message);
@@ -855,7 +868,6 @@ window.Dashboard = {
     if (this.state.viewMode === 'list') {
        container.className = 'absolute inset-0 flex flex-col gap-8 overflow-y-auto overflow-x-hidden custom-scroll px-4 md:px-8 pb-12 transition-all duration-300';
     } else {
-       // PERFECT ISOLATION: Absolute positioning inside a relative container. 
        container.className = 'absolute inset-0 flex flex-row gap-6 overflow-x-auto overflow-y-hidden items-stretch snap-x scroll-smooth custom-scroll px-4 md:px-8 pb-4 transition-all duration-300';
     }
 
@@ -898,7 +910,6 @@ window.Dashboard = {
     if (this.state.viewMode === 'list') {
         wrapper.className = 'w-full flex flex-col bg-white/40 dark:bg-[#444444]/40 p-5 rounded-3xl border border-gray-100 dark:border-[#444444] shadow-sm transition-all duration-300';
     } else {
-        // Internal vertical scrolling explicitly enabled here
         wrapper.className = 'flex-shrink-0 w-[85vw] sm:w-[350px] xl:w-[380px] max-w-full snap-start flex flex-col bg-white dark:bg-[#444444] p-4 rounded-3xl border border-gray-100 dark:border-[#444444] shadow-sm transition-all duration-300 h-full';
     }
     
@@ -1229,79 +1240,16 @@ window.Dashboard = {
     else if (timeState.isOverdue) { bgClass = 'bg-red-50/20 dark:bg-[#444444]/50'; rowBorder = 'border-l-4 border-red-500 dark:border-[#888888]'; }
     else if (timeState.isNearOverdue) { rowBorder = 'border-l-4 border-orange-400 dark:border-[#B0B0B0]'; }
 
-    row.className = `flex items-center gap-4 px-4 py-3 rounded-2xl shadow-sm border border-gray-100 dark:border-[#444444] transition-all duration-200 hover:shadow-md ${bgClass} ${rowBorder}`;
-    row.id = `task-list-${task.id}`;
-
-    const typeConfigObj = (window.AppConfig ? window.AppConfig.taskTypes : []).find(t => t.label === task.taskType) || { color: '#B0B0B0' };
-    
-    let priorityColor = 'text-gray-500 bg-gray-100 border-gray-200 dark:bg-[#444444] dark:border-[#444444] dark:text-[#E0E0E0]';
-    if(task.priority) { const pLow = task.priority.toLowerCase(); if(pLow === 'high') priorityColor = 'text-red-700 bg-red-50 border-red-200 dark:bg-[#888888] dark:border-[#888888] dark:text-[#121212]'; if(pLow === 'medium') priorityColor = 'text-blue-700 bg-blue-50 border-blue-200 dark:bg-[#444444] dark:border-[#444444] dark:text-[#E0E0E0]'; }
-
-    let deadlineStr = '--', deadlineColor = 'text-gray-400 dark:text-[#B0B0B0]';
-    if(task.deadline) {
-      const d = new Date(task.deadline); const timeString = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      deadlineStr = (d.toDateString() === new Date().toDateString()) ? `Today, ${timeString}` : `${d.toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}, ${timeString}`;
-    } else if (timeState.isOverdue) deadlineStr = timeState.reason || 'Overdue'; else if (task.title && /^\d{4}_\d{2}_\d{2}/.test(task.title)) deadlineStr = 'Daily Routine';
-    
-    if (timeState.isOverdue) deadlineColor = 'text-red-600 dark:text-[#E0E0E0] font-black' + (!isCompleted ? ' animate-pulse' : '');
-    else if (timeState.isNearOverdue) deadlineColor = 'text-orange-500 dark:text-[#E0E0E0] font-bold'; else if (isCompleted) deadlineColor = 'text-green-600 dark:text-[#E0E0E0] font-bold';
-
-    const titleArea = document.createElement('div');
-    titleArea.className = 'flex items-center gap-3 flex-1 min-w-0';
-    
-    if (this.state.sectionBulkMode[freq]) {
-      const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.className = 'custom-checkbox flex-shrink-0'; checkbox.checked = isSelected;
-      checkbox.onclick = (e) => { e.stopPropagation(); this.toggleSelection(task.id, checkbox.checked, freq); }; titleArea.appendChild(checkbox);
-    }
-
-    const titleCol = document.createElement('div'); titleCol.className = 'flex flex-col min-w-0';
-    const titleText = document.createElement('span'); titleText.className = 'text-[14px] font-black text-gray-900 dark:text-[#E0E0E0] truncate hover:text-blue-600 dark:hover:text-white cursor-pointer transition-colors';
-    titleText.textContent = task.title || 'Untitled Task'; titleText.onclick = () => { if(window.ViewTaskModal) window.ViewTaskModal.open(task.id); };
-    
-    const catText = document.createElement('div'); catText.className = 'text-[10px] text-gray-500 dark:text-[#B0B0B0] font-bold uppercase tracking-widest mt-0.5 truncate flex items-center gap-1.5';
-    let safeColor = document.body.classList.contains('dark-mode') ? '#888888' : typeConfigObj.color;
-    catText.innerHTML = `<span class="w-2 h-2 rounded-full" style="background-color: ${safeColor}"></span> ${task.taskType} ${task.subType && task.subType !== 'N/A' ? `<span class="text-gray-300 dark:text-[#444444]">/</span> ${task.subType}` : ''}`;
-    
-    titleCol.appendChild(titleText); titleCol.appendChild(catText); titleArea.appendChild(titleCol);
-    row.appendChild(titleArea);
-
-    const prioCol = document.createElement('div'); prioCol.className = 'hidden md:flex w-28 flex-shrink-0 items-center';
-    prioCol.innerHTML = `<span class="text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-wider border shadow-sm ${priorityColor}">${task.priority || 'None'}</span>`;
-    row.appendChild(prioCol);
-
-    const dlCol = document.createElement('div'); dlCol.className = 'w-36 flex-shrink-0 flex items-center';
-    dlCol.innerHTML = `<span class="text-xs ${deadlineColor} flex items-center gap-1 font-medium truncate"><svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><span class="truncate">${deadlineStr}</span></span>`;
-    row.appendChild(dlCol);
-
-    const actionsCol = document.createElement('div'); actionsCol.className = 'w-[180px] flex items-center justify-end gap-2 flex-shrink-0 pr-4';
-    
-    const viewBtn = document.createElement('button'); viewBtn.className = 'text-[10px] font-black uppercase tracking-wider text-blue-600 dark:text-[#121212] bg-blue-50 dark:bg-[#B0B0B0] hover:bg-blue-100 dark:hover:bg-[#E0E0E0] px-3 py-1.5 rounded-lg transition-colors focus:outline-none shadow-sm';
-    viewBtn.textContent = 'View'; viewBtn.onclick = () => { if(window.ViewTaskModal) window.ViewTaskModal.open(task.id); };
-
-    const statusSelect = document.createElement('select'); statusSelect.className = 'text-xs font-bold border border-gray-200 dark:border-[#444444] rounded-lg pl-3 pr-8 py-1.5 bg-gray-50 dark:bg-[#444444] text-gray-700 dark:text-[#E0E0E0] hover:bg-white dark:hover:bg-[#888888] focus:outline-none cursor-pointer modern-select transition-colors shadow-sm';
-    let allowedStatuses = (typeConfigObj && typeConfigObj.statuses && typeConfigObj.statuses.length > 0) ? [...typeConfigObj.statuses] : ['Open', 'In-Progress', 'Completed'];
-    if (task.status && !allowedStatuses.includes(task.status)) allowedStatuses.push(task.status);
-    allowedStatuses.forEach(statusOpt => { const option = document.createElement('option'); option.value = option.textContent = statusOpt; if (task.status === statusOpt) option.selected = true; statusSelect.appendChild(option); });
-    statusSelect.onchange = (e) => { statusSelect.disabled = true; statusSelect.classList.add('opacity-50', 'cursor-wait'); window.Dashboard.changeStatus(task.id, e.target.value, freq); };
-
-    actionsCol.appendChild(viewBtn); actionsCol.appendChild(statusSelect);
-    row.appendChild(actionsCol);
-
+    row.className = `flex items-center gap-4 px-4 py-3 rounded-2xl shadow-sm ${bgClass} ${rowBorder}`;
+    row.innerHTML = `<div class="flex-1 min-w-0"></div>`;
     return row;
   },
 
   setLoading(isLoading) {
     const loader = document.getElementById('dash-loading');
-    const container = document.getElementById('main-sections-container');
-    if (!loader || !container) return;
-
-    if (isLoading) {
-      loader.classList.remove('hidden');
-      container.style.display = 'none'; 
-    } else {
-      loader.classList.add('hidden');
-      container.style.display = ''; 
-    }
+    if (!loader) return;
+    if (isLoading) loader.classList.remove('hidden');
+    else loader.classList.add('hidden');
   }
 };
 </script>

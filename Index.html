@@ -76,11 +76,9 @@
     #app-sidebar .nav-link.active-nav {
       background-color: var(--sidebar-active-bg) !important;
       color: var(--sidebar-active-text) !important;
-      /* Subtle left accent bar on top of the solid bg */
       box-shadow: inset 3px 0 0 rgba(255,255,255,0.35);
       font-weight: 700;
     }
-    /* In light mode, icon inside active nav should also be white */
     #app-sidebar .nav-link.active-nav svg {
       color: var(--sidebar-active-text) !important;
       stroke: var(--sidebar-active-text) !important;
@@ -108,7 +106,6 @@
       color: var(--sidebar-text) !important;
     }
 
-    /* ── DARK MODE: page body & content ──────────────────────────────── */
     body.dark-mode,
     body.dark-mode [class*="bg-[#F8F9FB]"],
     body.dark-mode .bg-white {
@@ -189,22 +186,18 @@
       color: #E0E0E0 !important;
     }
 
-    /* ── Scrollbar hide ──────────────────────────────────────────────── */
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* ── Sidebar collapse ────────────────────────────────────────────── */
     #app-sidebar.sidebar-collapsed { width: 5rem !important; }
     #app-sidebar.sidebar-collapsed .logo-text,
     #app-sidebar.sidebar-collapsed .nav-text,
     #app-sidebar.sidebar-collapsed .user-info { display: none !important; }
-    /* Restore full width for nav-link when collapsed (margin hack removed) */
     #app-sidebar.sidebar-collapsed .nav-link {
       margin-inline: 0.25rem;
       width: calc(100% - 0.5rem);
     }
 
-    /* ── Theme toggle icon swap ──────────────────────────────────────── */
     .theme-icon-light { display: block; }
     .theme-icon-dark  { display: none;  }
     body.dark-mode .theme-icon-light { display: none;  }
@@ -286,7 +279,6 @@
         <select id="dev-role-select" onchange="changeDevRole(this.value)" class="w-full text-xs rounded px-2 py-1.5 focus:outline-none transition shadow-sm cursor-pointer"></select>
       </div>
 
-      <!-- Theme toggle -->
       <button onclick="toggleDarkMode()" title="Toggle Theme" class="w-full flex items-center h-12 transition focus:outline-none mb-1">
         <div class="w-20 min-w-[5rem] flex items-center justify-center flex-shrink-0">
           <svg class="theme-icon-light w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -367,89 +359,208 @@
   <script>
     window.AppConfig = null;
     window.CurrentUser = null;
+    window._preloadedTasks = null;
+    window._preloadedIsAdmin = null;
+    window._enterApplicationInProgress = false;
+    window.lastCheckTime = null;
+    window.heartbeatInterval = null;
+    window.notifications = [];
 
-    /**
-     * Core app bootstrap — runs on first load AND after a dev role switch.
-     * Never calls location.reload() because that navigates the GAS iframe to
-     * about:blank, causing the blank-page bug.
-     */
+    function setAppChromeVisible(isVisible) {
+      const sidebar = document.getElementById('app-sidebar');
+      const fab = document.getElementById('mobile-fab');
+      if (sidebar) {
+        if (isVisible) {
+          sidebar.classList.remove('hidden');
+          sidebar.classList.add('sm:flex');
+        } else {
+          sidebar.classList.add('hidden');
+          sidebar.classList.remove('sm:flex');
+        }
+      }
+      if (fab) {
+        if (isVisible) fab.classList.remove('hidden');
+        else fab.classList.add('hidden');
+      }
+    }
+
+    function resetPreloadState() {
+      window._preloadedTasks = null;
+      window._preloadedIsAdmin = null;
+      window._enterApplicationInProgress = false;
+      window.lastCheckTime = null;
+      if (window.heartbeatInterval) {
+        clearInterval(window.heartbeatInterval);
+        window.heartbeatInterval = null;
+      }
+    }
+
+    function getPreferredStartPage(userTier) {
+      let startPage = 'Dashboard';
+      const hash = window.location.hash.replace('#', '');
+      const savedPage = localStorage.getItem('tm_last_page');
+
+      if (hash && hash !== 'Login' && document.getElementById('view-' + hash)) {
+        startPage = hash;
+      } else if (savedPage && document.getElementById('view-' + savedPage)) {
+        startPage = savedPage;
+      }
+
+      if (startPage === 'Settings' && userTier >= 3) startPage = 'Dashboard';
+      if (!document.getElementById('view-' + startPage)) startPage = 'Dashboard';
+      return startPage;
+    }
+
+    function initializeNotifications() {
+      const list = document.getElementById('notif-list');
+      const badge = document.getElementById('notif-badge');
+      if (list && (!Array.isArray(window.notifications) || window.notifications.length === 0)) {
+        list.innerHTML = '<div class="p-6 text-center text-xs text-gray-400 dark:text-[#B0B0B0] font-medium">No new updates</div>';
+      }
+      if (badge) {
+        const count = Array.isArray(window.notifications) ? window.notifications.length : 0;
+        badge.textContent = String(count);
+        if (count > 0) badge.classList.remove('hidden');
+        else badge.classList.add('hidden');
+      }
+    }
+
+    function enterApplication(user) {
+      if (window._enterApplicationInProgress) return;
+      window._enterApplicationInProgress = true;
+      window.CurrentUser = user;
+      window.showLoader('Loading workspace...');
+      setAppChromeVisible(false);
+
+      const requestedStartPage = getPreferredStartPage(user?.tier ?? 3);
+      const preloadTeamView = requestedStartPage === 'Dashboard' ? !!window.Dashboard?.state?.isTeamView : false;
+
+      Promise.all([
+        new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(res => resolve(JSON.parse(res)))
+            .withFailureHandler(reject)
+            .API_getConfig();
+        }),
+        new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(json => resolve(JSON.parse(json)))
+            .withFailureHandler(reject)
+            .API_getTasks(1, 500, preloadTeamView);
+        }),
+        new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(res => resolve(JSON.parse(res)))
+            .withFailureHandler(reject)
+            .API_getUsersAdmin();
+        })
+      ])
+        .then(([configRes, tasksRes, usersRes]) => {
+          if (!configRes.success) {
+            throw new Error(configRes.message || 'Failed to load app configuration.');
+          }
+
+          window.AppConfig = configRes.data || {};
+
+          if (usersRes && usersRes.success && Array.isArray(usersRes.rows)) {
+            window.AppConfig.users = usersRes.rows;
+          } else if (!Array.isArray(window.AppConfig.users)) {
+            window.AppConfig.users = [];
+          }
+
+          window._preloadedTasks = Array.isArray(tasksRes?.rows) ? tasksRes.rows : [];
+          window._preloadedIsAdmin = !!tasksRes?.isAdmin;
+
+          updateSidebarUser(window.CurrentUser);
+
+          const appTitle = document.getElementById('sidebar-app-name');
+          if (appTitle && window.AppConfig.appName) {
+            appTitle.textContent = window.AppConfig.appName;
+            document.title = window.AppConfig.appName;
+          }
+
+          const defaultTiers = { "0": ["SDL","Dev"], "1": ["TL","OM","Ops Lead"], "2": ["SME","QA"], "3": ["Agent"] };
+          const activeTiers = window.AppConfig.roleTiers || defaultTiers;
+          let userTier = 3;
+          for (const [tierLvl, rolesArray] of Object.entries(activeTiers)) {
+            if (rolesArray.some(r => r.toLowerCase() === (window.CurrentUser.role || '').toLowerCase())) {
+              userTier = parseInt(tierLvl, 10);
+              break;
+            }
+          }
+          window.CurrentUser.tier = userTier;
+
+          if (userTier === 0) localStorage.setItem('tm_is_dev', 'true');
+
+          if (localStorage.getItem('tm_is_dev') === 'true') {
+            const devContainer = document.getElementById('dev-switcher-container');
+            const devSelect = document.getElementById('dev-role-select');
+            if (devContainer && devSelect) {
+              devContainer.classList.remove('hidden');
+              devSelect.innerHTML = '<option value="">-- Test As --</option><option value="Dev" class="font-bold text-blue-400">Restore to Dev</option>';
+              const allRoles = window.AppConfig.roles || ['Agent','TL','SME','QA','SDL','Dev','OM','Ops Lead'];
+              allRoles.forEach(r => devSelect.innerHTML += `<option value="${r}">${r}</option>`);
+            }
+          }
+
+          const settingsNav = document.getElementById('nav-Settings');
+          if (settingsNav) {
+            if (userTier >= 3) settingsNav.classList.add('hidden');
+            else settingsNav.classList.remove('hidden');
+          }
+
+          initializeNotifications();
+          setAppChromeVisible(true);
+
+          const startPage = getPreferredStartPage(userTier);
+          loadPage(startPage);
+
+          if (startPage === 'Dashboard' && window.Dashboard) {
+            window.Dashboard.init();
+          } else if (startPage === 'Settings' && window.SettingsPage) {
+            window.SettingsPage.init();
+          } else if (startPage === 'Analytics' && window.Analytics) {
+            window.Analytics.init();
+          } else if (startPage === 'ShiftReport' && window.ShiftReport) {
+            window.ShiftReport.init();
+          }
+
+          startHeartbeat();
+          setTimeout(() => window.hideLoader(), 150);
+        })
+        .catch(err => {
+          console.error('Failed to enter application:', err);
+          setAppChromeVisible(false);
+          loadPage('Login');
+          if (typeof toastError === 'function') toastError(err.message || 'Failed to start application.');
+          else alert(err.message || 'Failed to start application.');
+          window.hideLoader();
+        })
+        .finally(() => {
+          window._enterApplicationInProgress = false;
+        });
+    }
+
     function bootstrapApp() {
+      resetPreloadState();
       window.showLoader('Initializing App...');
+      setAppChromeVisible(false);
 
       google.script.run
         .withSuccessHandler(res => {
           const response = JSON.parse(res);
           if (response.active) {
-            window.CurrentUser = response.user;
-            google.script.run
-              .withSuccessHandler(configRes => {
-                const conf = JSON.parse(configRes);
-                if (conf.success) {
-                  window.AppConfig = conf.data;
-                  updateSidebarUser(window.CurrentUser);
-
-                  const appTitle = document.getElementById('sidebar-app-name');
-                  if (appTitle && window.AppConfig.appName) {
-                    appTitle.textContent = window.AppConfig.appName;
-                    document.title = window.AppConfig.appName;
-                  }
-
-                  const defaultTiers = { "0": ["SDL","Dev"], "1": ["TL","OM","Ops Lead"], "2": ["SME","QA"], "3": ["Agent"] };
-                  const activeTiers = window.AppConfig.roleTiers || defaultTiers;
-                  let userTier = 3;
-                  for (const [tierLvl, rolesArray] of Object.entries(activeTiers)) {
-                    if (rolesArray.some(r => r.toLowerCase() === (window.CurrentUser.role || '').toLowerCase())) {
-                      userTier = parseInt(tierLvl); break;
-                    }
-                  }
-                  window.CurrentUser.tier = userTier;
-
-                  if (userTier === 0) localStorage.setItem('tm_is_dev', 'true');
-
-                  if (localStorage.getItem('tm_is_dev') === 'true') {
-                    const devContainer = document.getElementById('dev-switcher-container');
-                    const devSelect = document.getElementById('dev-role-select');
-                    if (devContainer && devSelect) {
-                      devContainer.classList.remove('hidden');
-                      devSelect.innerHTML = '<option value="">-- Test As --</option><option value="Dev" class="font-bold text-blue-400">Restore to Dev</option>';
-                      const allRoles = window.AppConfig.roles || ['Agent','TL','SME','QA','SDL','Dev','OM','Ops Lead'];
-                      allRoles.forEach(r => devSelect.innerHTML += `<option value="${r}">${r}</option>`);
-                    }
-                  }
-
-                  const settingsNav = document.getElementById('nav-Settings');
-                  if (settingsNav) {
-                    if (userTier >= 3) settingsNav.classList.add('hidden');
-                    else settingsNav.classList.remove('hidden');
-                  }
-
-                  // Stop any previous heartbeat before starting a new one
-                  if (window.heartbeatInterval) clearInterval(window.heartbeatInterval);
-                  startHeartbeat();
-
-                  document.getElementById('app-sidebar').classList.remove('hidden');
-                  document.getElementById('app-sidebar').classList.add('sm:flex');
-                  document.getElementById('mobile-fab').classList.remove('hidden');
-
-                  let startPage = localStorage.getItem('tm_last_page') || 'Dashboard';
-                  if (startPage === 'Settings' && userTier >= 3) startPage = 'Dashboard';
-                  if (!document.getElementById('view-' + startPage)) startPage = 'Dashboard';
-                  loadPage(startPage);
-
-                  if (startPage === 'Dashboard'   && window.Dashboard)   window.Dashboard.init();
-                  if (startPage === 'Settings'    && window.SettingsPage) window.SettingsPage.init();
-                  if (startPage === 'Analytics'   && window.Analytics)   window.Analytics.init();
-                  if (startPage === 'ShiftReport' && window.ShiftReport) window.ShiftReport.init();
-
-                  setTimeout(() => window.hideLoader(), 300);
-                }
-              })
-              .API_getConfig();
+            enterApplication(response.user);
           } else {
-            if (response.expired) toastError('Session expired. Please log in again.');
+            if (response.expired && typeof toastError === 'function') toastError('Session expired. Please log in again.');
             loadPage('Login');
-            setTimeout(() => window.hideLoader(), 300);
+            setTimeout(() => window.hideLoader(), 150);
           }
+        })
+        .withFailureHandler(err => {
+          loadPage('Login');
+          if (typeof toastError === 'function') toastError(err.message || 'Failed to check current session.');
+          window.hideLoader();
         })
         .API_checkCurrentSession();
     }
@@ -459,11 +570,9 @@
       window.showLoader(`Switching to ${newRole}...`);
       google.script.run
         .withSuccessHandler(() => {
-          // Reset dev select to placeholder so it doesn't look "stuck"
           const devSelect = document.getElementById('dev-role-select');
           if (devSelect) devSelect.value = '';
           showToast(`Switched to ${newRole}. Re-initializing...`, 'success');
-          // Re-run full bootstrap in-place — NO location.reload()
           bootstrapApp();
         })
         .withFailureHandler(err => {
@@ -480,11 +589,10 @@
     }
 
     function logOutApp() {
-      if (window.heartbeatInterval) clearInterval(window.heartbeatInterval);
-      const sidebar = document.getElementById('app-sidebar');
-      sidebar.classList.add('hidden');
-      sidebar.classList.remove('sm:flex');
-      document.getElementById('mobile-fab').classList.add('hidden');
+      resetPreloadState();
+      window.AppConfig = null;
+      window.CurrentUser = null;
+      setAppChromeVisible(false);
       loadPage('Login');
       google.script.run
         .withSuccessHandler(() => { showToast('Logged out successfully.', 'success'); })
@@ -515,7 +623,6 @@
       showToast('Export complete!', 'success');
     }
 
-    window.notifications = [];
     function toggleNotifications() {
       const panel = document.getElementById('notif-panel');
       if (panel) {
@@ -561,9 +668,6 @@
       `).join('');
     }
 
-    window.lastCheckTime = null;
-    window.heartbeatInterval = null;
-
     function startHeartbeat() {
       if (window.heartbeatInterval) clearInterval(window.heartbeatInterval);
       window.heartbeatInterval = setInterval(() => {
@@ -583,7 +687,6 @@
       }, 15000);
     }
 
-    // Kick off the app on first load
     window.onload = () => bootstrapApp();
   </script>
 </body>

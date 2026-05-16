@@ -30,7 +30,6 @@ window.Login = {
       <p class="text-xs text-gray-400 mt-4 font-medium uppercase tracking-widest">Requires Google Authentication</p>
     `;
 
-    // Fetch the App Name quietly in the background as soon as the page loads
     google.script.run
       .withSuccessHandler(res => {
         try {
@@ -61,7 +60,6 @@ window.Login = {
           window.CurrentUser = response.user;
           this.bootDashboard();
         } else {
-          // UNAUTHORIZED STATE: Inject the Request Access Form
           container.innerHTML = `
             <div class="bg-red-50 text-red-800 p-3 rounded-lg text-sm w-full mb-5 border border-red-200">
               Access Denied:<br><span class="font-bold text-base mt-1 block">${response.email}</span>
@@ -92,7 +90,7 @@ window.Login = {
       .withFailureHandler(err => {
          if(typeof toastError === 'function') toastError(err.message);
          else alert(err.message);
-         this.init(); // Reset on failure
+         this.init();
       })
       .API_loginUser();
   },
@@ -102,7 +100,6 @@ window.Login = {
     const reasonEl = document.getElementById('access-reason');
     const reason = reasonEl ? reasonEl.value.trim() : '';
 
-    // UX: Loading state for the button
     btn.disabled = true;
     btn.innerHTML = `<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> <span class="ml-2">Sending...</span>`;
     btn.classList.add('opacity-75');
@@ -111,13 +108,11 @@ window.Login = {
       .withSuccessHandler(res => {
         const response = JSON.parse(res);
         if (response.success) {
-          // Hide form, show success checkmark
           document.getElementById('request-form-area').classList.add('hidden');
           const successArea = document.getElementById('request-success-area');
           successArea.classList.remove('hidden');
           successArea.classList.add('flex');
         } else {
-          // Show error if they already have a pending request
           if (typeof toastError === "function") toastError(response.message);
           else alert(response.message);
           this.resetRequestBtn(btn);
@@ -138,32 +133,9 @@ window.Login = {
   },
 
   bootDashboard() {
-    google.script.run
-      .withSuccessHandler(json => {
-        const res = JSON.parse(json);
-        if (res.success) {
-          window.AppConfig = res.data;
-          
-          if (typeof updateSidebarUser === 'function') {
-            updateSidebarUser(window.CurrentUser);
-          }
-          
-          document.getElementById('app-sidebar').classList.remove('hidden');
-          document.getElementById('app-sidebar').classList.add('sm:flex');
-          document.getElementById('mobile-fab').classList.remove('hidden');
-          
-          if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
-          
-          let startPage = 'Dashboard';
-          const hash = window.location.hash.replace('#', '');
-          if (hash && hash !== 'Login' && document.getElementById('view-' + hash)) {
-            startPage = hash;
-          }
-          
-          if (typeof loadPage === 'function') loadPage(startPage);
-        }
-      })
-      .API_getConfig();
+    if (typeof window.enterApplication === 'function' && window.CurrentUser) {
+      window.enterApplication(window.CurrentUser);
+    }
   }
 };
 </script>
